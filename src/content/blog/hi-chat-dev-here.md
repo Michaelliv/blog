@@ -1,7 +1,7 @@
 ---
 title: 'hi chat, dev here'
 description: 'First post. What this blog is and why it exists.'
-pubDate: 'Nov 28 2024'
+pubDate: 'Nov 28 2025'
 ---
 
 This is a meta post.

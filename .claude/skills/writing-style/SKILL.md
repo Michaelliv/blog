@@ -45,12 +45,12 @@ This skill guides co-authoring blog posts. It captures preferences learned throu
 
 Each entry captures a preference discovered during editing.
 
-1. **2024-11-28**: Prefers Simon Willison-style third person for bio/about content - factual, project-focused, no fluff
-2. **2024-11-28**: "before and after" preferred over "along the way" when describing timeline spanning multiple periods
-3. **2024-11-28**: First post approved - short paragraphs, direct first person, meta/self-aware tone works well, "notes from the trenches" vibe
+1. **2025-11-28**: Prefers Simon Willison-style third person for bio/about content - factual, project-focused, no fluff
+2. **2025-11-28**: "before and after" preferred over "along the way" when describing timeline spanning multiple periods
+3. **2025-11-28**: First post approved - short paragraphs, direct first person, meta/self-aware tone works well, "notes from the trenches" vibe
 
 ---
 
 ## Posts Written Together
 
-1. **hi-chat-dev-here.md** (2024-11-28) - First post, meta intro to the blog. Approved first draft.
+1. **hi-chat-dev-here.md** (2025-11-28) - First post, meta intro to the blog. Approved first draft.
