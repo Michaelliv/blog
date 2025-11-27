@@ -1,0 +1,56 @@
+---
+name: writing-style
+description: Michael's blog writing style preferences. Use when co-authoring posts for /dev/michael. This skill evolves as we write together.
+---
+
+# Michael's Writing Style
+
+This skill guides co-authoring blog posts. It captures preferences learned through collaboration.
+
+**Status:** Skeleton - actively learning
+
+---
+
+## Voice & Tone
+
+- Third person for about/bio content (like Simon Willison's style)
+- First person for blog posts - direct, personal
+- Short paragraphs, punchy
+- No fluff, no filler phrases
+- Conversational but not chatty
+
+## Structure
+
+- Short paragraphs (1-3 sentences)
+- No headers needed for short posts
+- End with forward-looking statement when appropriate
+
+## Language
+
+### Preferred Phrases
+- "before and after" (not "along the way" when referring to multiple time periods)
+- (more to be added)
+
+### Avoid
+- Overly casual first-person intros like "I'm X. At work they call me..."
+- (more to be added)
+
+## Technical Content
+
+- TBD
+
+---
+
+## Learned Preferences Log
+
+Each entry captures a preference discovered during editing.
+
+1. **2024-11-28**: Prefers Simon Willison-style third person for bio/about content - factual, project-focused, no fluff
+2. **2024-11-28**: "before and after" preferred over "along the way" when describing timeline spanning multiple periods
+3. **2024-11-28**: First post approved - short paragraphs, direct first person, meta/self-aware tone works well, "notes from the trenches" vibe
+
+---
+
+## Posts Written Together
+
+1. **hi-chat-dev-here.md** (2024-11-28) - First post, meta intro to the blog. Approved first draft.
