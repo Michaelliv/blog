@@ -1,0 +1,27 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { SITE_TITLE } from '../consts';
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={`About - ${SITE_TITLE}`} description="About Michael" />
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>About</h1>
+			<p>
+				Michael Livshits is a software engineer specializing in LLMs and AI systems.
+				Previously Staff Engineer in ML/AI at Intuit. Founded a few startups before and after.
+			</p>
+			<p>
+				He writes about LLMs, engineering, and the things he learns along the way at this blog.
+			</p>
+		</main>
+		<Footer />
+	</body>
+</html>
