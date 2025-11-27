@@ -9,6 +9,23 @@ import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
 const posts = (await getCollection('blog')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
+
+function getExcerpt(body: string, maxLength: number = 500) {
+	const stripped = body.replace(/^---[\s\S]*?---/, '').trim();
+	const totalWords = stripped.split(/\s+/).length;
+
+	if (stripped.length <= maxLength) {
+		return { text: stripped, truncated: false, totalWords };
+	}
+
+	const truncated = stripped.slice(0, maxLength);
+	const lastSpace = truncated.lastIndexOf(' ');
+	return {
+		text: truncated.slice(0, lastSpace),
+		truncated: true,
+		totalWords
+	};
+}
 ---
 
 <!doctype html>
@@ -21,22 +38,30 @@ const posts = (await getCollection('blog')).sort(
 		<main>
 			<h1>Posts</h1>
 			<div class="post-list">
-				{posts.map((post) => (
-					<article class="post-preview">
-						<header>
-							<span class="date"><FormattedDate date={post.data.pubDate} /></span>
-							{post.data.tags && (
-								<span class="tags">
-									{post.data.tags.map((tag) => (
-										<span class="tag">{tag}</span>
-									))}
-								</span>
-							)}
-						</header>
-						<h2><a href={`/blog/${post.id}/`}>{post.data.title}</a></h2>
-						<p class="description">{post.data.description}</p>
-					</article>
-				))}
+				{posts.map((post) => {
+					const excerpt = getExcerpt(post.body || '');
+					return (
+						<article class="post-preview">
+							<header>
+								<span class="date"><FormattedDate date={post.data.pubDate} /></span>
+								{post.data.tags && (
+									<span class="tags">
+										{post.data.tags.map((tag) => (
+											<span class="tag">{tag}</span>
+										))}
+									</span>
+								)}
+							</header>
+							<h2><a href={`/blog/${post.id}/`}>{post.data.title}</a></h2>
+							<div class="excerpt">
+								<p>{excerpt.text}{excerpt.truncated && '...'}</p>
+								{excerpt.truncated && (
+									<p class="word-count">[... {excerpt.totalWords} words]</p>
+								)}
+							</div>
+						</article>
+					);
+				})}
 			</div>
 		</main>
 		<Footer />
@@ -90,9 +115,15 @@ const posts = (await getCollection('blog')).sort(
 	.tag::before {
 		content: '#';
 	}
-	.description {
+	.excerpt {
+		line-height: 1.6;
+	}
+	.excerpt p {
 		margin: 0;
-		color: var(--text);
-		line-height: 1.5;
+	}
+	.word-count {
+		color: var(--text-light);
+		font-size: 0.875rem;
+		margin-top: 0.5rem !important;
 	}
 </style>
