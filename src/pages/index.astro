@@ -10,7 +10,7 @@ const posts = (await getCollection('blog')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 ).slice(0, 10);
 
-function getExcerpt(body: string, maxLength: number = 500) {
+function getExcerpt(body: string, maxLength: number = 1200) {
 	const stripped = body.replace(/^---[\s\S]*?---/, '').trim();
 	const totalWords = stripped.split(/\s+/).length;
 
