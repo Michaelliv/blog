@@ -2,6 +2,7 @@
 title: 'hi chat, dev here'
 description: 'First post. What this blog is and why it exists.'
 pubDate: 'Nov 28 2025'
+tags: ['meta']
 ---
 
 This is a meta post.

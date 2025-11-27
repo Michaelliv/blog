@@ -20,14 +20,24 @@ const posts = (await getCollection('blog')).sort(
 		<Header />
 		<main>
 			<h1>Posts</h1>
-			<ul class="post-list">
+			<div class="post-list">
 				{posts.map((post) => (
-					<li>
-						<span class="date"><FormattedDate date={post.data.pubDate} /></span>
-						<a href={`/blog/${post.id}/`}>{post.data.title}</a>
-					</li>
+					<article class="post-preview">
+						<header>
+							<span class="date"><FormattedDate date={post.data.pubDate} /></span>
+							{post.data.tags && (
+								<span class="tags">
+									{post.data.tags.map((tag) => (
+										<span class="tag">{tag}</span>
+									))}
+								</span>
+							)}
+						</header>
+						<h2><a href={`/blog/${post.id}/`}>{post.data.title}</a></h2>
+						<p class="description">{post.data.description}</p>
+					</article>
 				))}
-			</ul>
+			</div>
 		</main>
 		<Footer />
 	</body>
@@ -38,17 +48,51 @@ const posts = (await getCollection('blog')).sort(
 		margin-top: 0;
 	}
 	.post-list {
-		list-style: none;
-		padding: 0;
 		margin: 0;
 	}
-	.post-list li {
+	.post-preview {
+		margin-bottom: 2rem;
+		padding-bottom: 2rem;
+		border-bottom: 1px solid var(--border);
+	}
+	.post-preview:last-child {
+		border-bottom: none;
+	}
+	.post-preview header {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
 		margin-bottom: 0.5rem;
+	}
+	.post-preview h2 {
+		margin: 0 0 0.5rem 0;
+		font-size: 1.25rem;
+	}
+	.post-preview h2 a {
+		text-decoration: none;
+	}
+	.post-preview h2 a:hover {
+		text-decoration: underline;
 	}
 	.date {
 		color: var(--text-light);
 		font-size: 0.875rem;
-		margin-right: 1rem;
 		font-family: "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+	}
+	.tags {
+		display: flex;
+		gap: 0.5rem;
+	}
+	.tag {
+		font-size: 0.75rem;
+		color: var(--text-light);
+		background: var(--code-bg);
+		padding: 0.1rem 0.4rem;
+		border-radius: 3px;
+	}
+	.description {
+		margin: 0;
+		color: var(--text);
+		line-height: 1.5;
 	}
 </style>
