@@ -28,75 +28,60 @@ Here's the thing about reverse-engineering Claude's sandbox: Claude is the best 
 <Browser url="claude.ai" title="Claude">
   <ClaudeChat
     initials="ML"
-    maxHeight="500px"
+    maxHeight="600px"
     messages={[
-      { role: 'human', text: 'What kernel are you running on? Run uname -a' },
+      { role: 'human', text: 'What kernel are you running on?' },
       { role: 'assistant', content: [
-        "I'll check what kernel I'm running on.",
         { tool: 'Check kernel version', command: 'uname -a', output: 'Linux runsc 4.4.0 #1 SMP Sun Jan 10 15:06:54 PST 2016 x86_64 GNU/Linux' },
-        "Interesting - that runsc kernel and the 2016 date is gVisor's signature. I'm running in a gVisor sandbox, not a regular container or VM."
+        "The `runsc` hostname and 2016 date are gVisor's signature. I'm running in a gVisor sandbox, not a regular container or VM."
       ]},
-      { role: 'human', text: 'What does your filesystem look like? Show me the mounts and root directory.' },
+      { role: 'human', text: 'What are your resource limits?' },
       { role: 'assistant', content: [
-        { tool: 'List filesystem and mounts', command: 'ls -la / && mount', output: `drwxr-xr-x  root root     /
-drwxr-xr-x  root root     bin
-drwxr-xr-x  root root     etc
-drwxr-xr-x  root root     home
-drwxr-xr-x  root root     lib
-drwxrwxrwx  sandbox sandbox  mnt
-drwxr-xr-x  root root     usr
-drwxrwxrwx  sandbox sandbox  workspace
+        { tool: 'Check resource limits', command: 'free -h && nproc', output: `              total   used    free
+Mem:          9.0Gi   11Mi   9.0Gi
 
-none on / type overlay (rw,relatime,...)
-/mnt/user-data/uploads type 9p (ro,relatime,...)
-/mnt/user-data/outputs type 9p (rw,relatime,...)
-/mnt/skills type 9p (ro,relatime,...)` },
-        "The mounts use 9p - that's Plan 9's filesystem protocol. Uploads and skills are read-only, outputs is writable. I can read what you give me, write results to a specific location, and nothing else."
+4` },
+        "9GB memory, 4 CPUs. Generous for a sandbox."
       ]},
-      { role: 'human', text: 'How big is your image? What tools do you have?' },
+      { role: 'human', text: 'How does network access work?' },
       { role: 'assistant', content: [
-        { tool: 'Check disk usage and available tools', command: 'du -sh / && du -sh /usr /home/claude /opt/pw-browsers /lib/jvm /lib/libreoffice && which ffmpeg convert pdflatex node', output: `7.3G    /
-4.8G    /usr
-3.0G    /home/claude
-924M    /opt/pw-browsers
-193M    /lib/jvm
-307M    /lib/libreoffice
-
-/bin/ffmpeg
-/bin/convert
-/bin/pdflatex
-/bin/node` },
-        "7.3GB total. I've got ffmpeg, ImageMagick, a full LaTeX distribution, Playwright browsers for web automation, LibreOffice for documents. Pretty much anything for file processing."
+        { tool: 'Check network config', command: "echo $HTTP_PROXY", output: 'http://container_xxx:jwt_eyJ0eXAiOiJKV1QiLC...@21.0.0.15:15004' },
+        "All traffic goes through a proxy. The credentials are a JWT. Let me decode it."
+      ]},
+      { role: 'human', text: 'What\'s in the JWT?' },
+      { role: 'assistant', content: [
+        { tool: 'Decode JWT payload', command: 'echo $HTTP_PROXY | grep -oP "jwt_\\K[^@]+" | cut -d. -f2 | base64 -d | python3 -m json.tool', output: `{
+    "iss": "anthropic-egress-control",
+    "allowed_hosts": "github.com,pypi.org,npmjs.org,crates.io,api.anthropic.com,...",
+    "exp": 1764386514
+}` },
+        "The proxy only allows traffic to package registries, GitHub, and Anthropic's API. The token expires in 4 hours. Network access exists, but it's tightly controlled."
+      ]},
+      { role: 'human', text: "What's running as PID 1?" },
+      { role: 'assistant', content: [
+        { tool: 'Check init process', command: 'ps aux | head -2', output: `USER  PID  COMMAND
+root    1  /process_api --addr 0.0.0.0:2024 --memory-limit-bytes 4294967296` },
+        "PID 1 is a custom binary - not bash, not systemd. It's listening on port 2024 and enforcing a 4GB memory limit. This is the agent executor that spawns shells for each command."
       ]}
     ]}
   />
 </Browser>
 
-A few things jumped out from this conversation:
+This revealed more than I expected.
 
-**gVisor, not Firecracker.** The `runsc` kernel is gVisor's fingerprint. Anthropic chose userspace isolation over microVMs.
+**Network control via egress proxy.** Instead of disabling network entirely, all traffic routes through a proxy that validates JWTs. The token contains an allowlist of hosts (package registries, GitHub, Anthropic API) and expires in 4 hours. Claude has network access - it's just tightly controlled.
 
-**9p mounts for file sharing.** Plan 9's filesystem protocol. The permission model is explicit: uploads and skills are read-only, outputs is writable.
+**A custom init process.** PID 1 isn't a shell - it's `/process_api`, a purpose-built binary that receives commands and enforces resource limits at the application layer.
 
-**7.3GB image with everything.** ffmpeg, ImageMagick, LaTeX, Playwright, LibreOffice. Claude can process basically any file format.
+**Running as root inside the sandbox.** This surprised me. gVisor's isolation is strong enough that they don't bother with a non-root user.
 
-**Non-root by default.** The `sandbox` user owns the writable directories.
+| What I expected | What I found |
+|----------------|--------------|
+| No network | JWT-authenticated egress proxy |
+| Shell as PID 1 | Custom `/process_api` binary |
+| Non-root user | Root (uid=0) |
 
-Here's the breakdown of what's eating space:
-
-| Path | Size | What it is |
-|------|------|------------|
-| `/usr` | 4.8GB | Binaries, libraries, shared data |
-| `/home/claude` | 3.0GB | Working directory |
-| `/opt/pw-browsers` | 924MB | Playwright browsers (headless Chrome/Firefox) |
-| `/lib/jvm` | 193MB | Java runtime |
-| `/lib/libreoffice` | 307MB | Document generation |
-
-The tooling is extensive: ffmpeg for video processing, ImageMagick for images, a full LaTeX distribution, Playwright for browser automation, LibreOffice for documents. Claude can process basically any file format.
-
-For my use case, I don't need most of this. A minimal agent sandbox can be ~200MB instead of 7GB.
-
-So Anthropic chose gVisor for isolation, and a kitchen-sink image for capability. I'd copy the first decision but not the second.
+The image is ~7GB with ffmpeg, ImageMagick, LaTeX, Playwright, LibreOffice - everything for file processing. For my use case, a minimal ~200MB image is enough.
 
 ## The options
 
@@ -126,15 +111,10 @@ RUN mkdir -p /mnt/user-data/uploads \
 
 WORKDIR /workspace
 
-RUN useradd -m -s /bin/bash sandbox && \
-    chown -R sandbox:sandbox /mnt/user-data /workspace
-
-USER sandbox
-
 CMD ["tail", "-f", "/dev/null"]
 ```
 
-Python, standard unix utils, a non-root user, and a directory structure that mirrors what I saw in Claude's environment. The `tail -f /dev/null` keeps the container alive without doing anything.
+Python, standard unix utils, and a directory structure that mirrors Claude's. No non-root user - gVisor provides the isolation boundary, not Linux permissions. The `tail -f /dev/null` keeps the container alive; in production you'd replace this with a proper init process like Claude's `/process_api`.
 
 ## Container lifecycle
 
@@ -157,8 +137,7 @@ class SandboxManager:
         self.storage_path = storage_path
         self.sessions: dict[str, SandboxSession] = {}
 
-    async def create_session(self, session_id: str, tenant_id: str, network_enabled: bool = False):
-        # Create tenant storage directories
+    async def create_session(self, session_id: str, tenant_id: str):
         tenant_dir = self.storage_path / tenant_id
         (tenant_dir / "workspace").mkdir(parents=True, exist_ok=True)
         (tenant_dir / "outputs").mkdir(parents=True, exist_ok=True)
@@ -168,11 +147,13 @@ class SandboxManager:
             detach=True,
             name=f"sandbox-{session_id[:8]}",
             runtime=self.runtime,
-            network_mode="bridge" if network_enabled else "none",
-            mem_limit="512m",
+            mem_limit="4g",
             cpu_period=100000,
-            cpu_quota=50000,
-            security_opt=["no-new-privileges"],
+            cpu_quota=400000,  # 4 CPUs
+            environment={
+                "HTTP_PROXY": self._generate_proxy_url(session_id, tenant_id),
+                "HTTPS_PROXY": self._generate_proxy_url(session_id, tenant_id),
+            },
             volumes={
                 str(tenant_dir / "workspace"): {"bind": "/workspace", "mode": "rw"},
                 str(tenant_dir / "outputs"): {"bind": "/mnt/user-data/outputs", "mode": "rw"},
@@ -183,67 +164,58 @@ class SandboxManager:
         return container
 ```
 
+The key insight from Claude's architecture: network isn't disabled, it's controlled. All traffic routes through an egress proxy that validates requests against an allowlist.
+
 ## Defense in depth
 
-Six layers of isolation:
+Four layers of isolation:
 
-**gVisor runtime** - Syscall interception, separate kernel. Even if code escapes the container, it hits gVisor's userspace kernel, not the host.
+**gVisor runtime** - The primary boundary. Syscalls are intercepted by a userspace kernel written in Go. Even if code escapes the container, it's running against gVisor, not your host. This is why Claude can run as root - "root" inside gVisor has no privileges outside it.
 
-**No network by default** - `network_mode: none`. The sandbox can't phone home, can't exfiltrate data, can't download malware.
+**Egress proxy with allowlist** - All outbound traffic routes through a proxy that validates requests. The sandbox can reach pypi.org, github.com, npm - but nothing else. No exfiltration to arbitrary hosts. The proxy authenticates requests with short-lived JWTs that encode the allowed hosts.
 
-**Non-root user** - Everything runs as `sandbox`, not root. Limits what the process can touch.
+**Resource limits** - 4GB memory, 4 CPUs. A runaway process can't starve the host. The init process can enforce additional limits at the application layer.
 
-**no-new-privileges** - Can't escalate via setuid binaries. Even if the agent finds a setuid binary, it can't use it to gain privileges.
+**Filesystem mounts** - Only `/workspace` and `/mnt/user-data/outputs` are writable. User uploads mount read-only. The sandbox can't modify its own image or persist changes outside designated paths.
 
-**Resource limits** - 512MB memory, 50% of one CPU. A runaway process can't starve the host or other tenants.
+## The egress proxy
 
-**Path validation** - Only `/workspace` and `/mnt/user-data/outputs` are writable:
+The egress proxy is the clever part of this architecture. Instead of disabling network and dealing with the pain of `pip install`, you control *where* traffic can go.
 
-```python
-async def write_file(self, session_id: str, path: str, content: str) -> tuple[bool, str]:
-    if path.startswith("/"):
-        full_path = path
-    else:
-        full_path = f"/workspace/{path}"
-
-    allowed_prefixes = ["/workspace", "/mnt/user-data/outputs"]
-    if not any(full_path.startswith(p) for p in allowed_prefixes):
-        return False, "Path not allowed"
-
-    # Write via container exec...
-```
-
-## The pip problem
-
-No network means no `pip install`. But agents often need packages.
-
-I considered a few approaches:
-
-**Bake everything into the image.** Inflexible - you can't predict what an agent will need.
-
-**Temporary network access.** Connect network, install, disconnect. Sounds clever, but Docker doesn't let you change `network_mode` on a running container.
-
-**Network at session creation.** The caller decides upfront whether this sandbox needs internet access.
-
-I went with option three. Not ideal - you have to know at session creation time whether you'll need pip. But it's simple and explicit.
+The proxy validates each request against an allowlist encoded in a JWT:
 
 ```python
-async def pip_install(self, session_id: str, packages: list[str]) -> ExecResponse:
-    session = self.sessions.get(session_id)
-
-    if not session.network_enabled:
-        return ExecResponse(exit_code=-1, stderr="Network not enabled for this session")
-
-    # Sanitize package names - block path traversal
-    for pkg in packages:
-        if not all(c.isalnum() or c in "-_.[]<>=!," for c in pkg):
-            return ExecResponse(exit_code=-1, stderr=f"Invalid package name: {pkg}")
-
-    packages_str = " ".join(f"'{p}'" for p in packages)
-    return await self.exec_command(session_id, f"pip install --user {packages_str}")
+def _generate_proxy_url(self, session_id: str, tenant_id: str) -> str:
+    payload = {
+        "iss": "sandbox-egress-control",
+        "session_id": session_id,
+        "tenant_id": tenant_id,
+        "allowed_hosts": [
+            "pypi.org", "files.pythonhosted.org",  # pip
+            "registry.npmjs.org",                   # npm
+            "github.com",                           # git clone
+        ],
+        "exp": datetime.utcnow() + timedelta(hours=4),
+    }
+    token = jwt.encode(payload, self.signing_key, algorithm="ES256")
+    return f"http://sandbox:{token}@{self.proxy_host}:{self.proxy_port}"
 ```
 
-The sanitization matters. A malicious agent shouldn't be able to sneak `pip install ../../etc/passwd` past you.
+The proxy (a simple HTTP CONNECT proxy with JWT validation) checks each request:
+
+```python
+async def handle_connect(self, request):
+    token = extract_token_from_auth(request)
+    payload = jwt.decode(token, self.public_key, algorithms=["ES256"])
+
+    target_host = request.url.host
+    if target_host not in payload["allowed_hosts"]:
+        return Response(status=403, text=f"Host not allowed: {target_host}")
+
+    # Proxy the connection...
+```
+
+This solves the pip problem elegantly. The agent can `pip install requests` because pypi.org is in the allowlist. But it can't exfiltrate data to evil.com.
 
 ## Streaming output
 
@@ -291,29 +263,29 @@ The `demux=True` separates stdout and stderr. Without it, you get interleaved ou
       <span class="prompt">$</span>
       <span class="cmd">whoami</span>
     </div>
-    <div class="output">sandbox</div>
-    <div class="annotation">non-root user</div>
+    <div class="output">root</div>
+    <div class="annotation">root inside sandbox, no privileges outside</div>
 
     <div class="cmd-line">
       <span class="prompt">$</span>
-      <span class="cmd">curl https://example.com</span>
+      <span class="cmd">curl https://pypi.org</span>
     </div>
-    <div class="output error">curl: (6) Could not resolve host</div>
-    <div class="annotation">no network</div>
+    <div class="output">HTTP/1.1 200 OK</div>
+    <div class="annotation">allowlisted host works</div>
 
     <div class="cmd-line">
       <span class="prompt">$</span>
-      <span class="cmd">cat /etc/shadow</span>
+      <span class="cmd">curl https://evil.com</span>
     </div>
-    <div class="output error">cat: /etc/shadow: Permission denied</div>
-    <div class="annotation">no privilege escalation</div>
+    <div class="output error">HTTP/1.1 403 Forbidden - Host not allowed</div>
+    <div class="annotation">egress proxy blocks unlisted hosts</div>
 
     <div class="cmd-line">
       <span class="prompt">$</span>
       <span class="cmd">ls /</span>
     </div>
-    <div class="output">workspace  mnt</div>
-    <div class="annotation">minimal filesystem</div>
+    <div class="output">workspace  mnt  usr  bin  ...</div>
+    <div class="annotation">full filesystem, writes restricted to /workspace</div>
 
     <div class="mount-info">
       <span class="arrow">↓</span>
@@ -375,9 +347,9 @@ The `demux=True` separates stdout and stderr. Without it, you get interleaved ou
 
 **No container pooling.** Pre-warmed pools give you ~10-50ms latency instead of ~800ms. But session-scoped is simpler and the cold start hides behind LLM inference. I'll add pooling when latency actually becomes a problem.
 
-**No snapshot/restore.** Firecracker can snapshot a running VM and restore in ~5ms. gVisor doesn't support this. If I ever need that performance, I'll revisit Firecracker and accept the operational complexity.
+**No snapshot/restore.** Firecracker can snapshot a running VM and restore in ~5ms. gVisor doesn't support this. If I ever need sub-second container startup, I'll revisit Firecracker and accept the operational complexity.
 
-**Network is all-or-nothing at session creation.** Can't toggle it mid-session. Agents that might need pip have to opt in upfront, which means they have network access even when not installing packages. Not ideal.
+**Egress proxy is another service to run.** The JWT-based proxy adds infrastructure. For a simple setup, `network_mode: none` is easier. But it's worth it - agents that can't pip install are significantly less useful.
 
 **gVisor's syscall overhead.** Some workloads see 2-10x slowdown on syscall-heavy operations. For "run Python scripts and shell commands" this is negligible. For high-frequency I/O, you'd notice.
 
@@ -387,8 +359,8 @@ The `demux=True` separates stdout and stderr. Without it, you get interleaved ou
 
 Firecracker is technically superior. Faster boot, true VM isolation, snapshot/restore. But it requires KVM access, which means bare metal or nested virtualization. For most teams running on standard cloud infrastructure, that's a non-starter.
 
-gVisor is the practical choice. It works in standard Kubernetes, standard Docker, anywhere containers run. Google trusts it for Cloud Run. Anthropic trusts it for Claude. The isolation is real - you're running against a userspace kernel, not the host.
+gVisor is the practical choice. It works in standard Kubernetes, standard Docker, anywhere containers run. Google trusts it for Cloud Run. Anthropic trusts it for Claude. The isolation is strong enough to run as root inside the sandbox.
 
-The pattern: gVisor runtime, session-scoped containers, defense in depth, network off by default. Simple enough to build in a weekend, robust enough to run in production.
+The pattern I learned from reverse-engineering Claude's sandbox: gVisor as the hard security boundary, an egress proxy for network control instead of disabling it entirely, and session-scoped containers that hide cold start behind LLM inference latency.
 
 If you're building agents that execute code, you need something like this. The alternative - running untrusted code on your host - is not an option.
