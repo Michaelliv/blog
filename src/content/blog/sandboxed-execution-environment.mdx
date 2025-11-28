@@ -343,6 +343,15 @@ The `demux=True` separates stdout and stderr. Without it, you get interleaved ou
   }
 `}</style>
 
+## Benchmarks
+
+{/* TODO: Add benchmarks
+- Cold start latency (session creation time)
+- Command execution latency: gVisor vs plain Docker
+- Memory overhead per session
+- Concurrent session scaling
+*/}
+
 ## Trade-offs I accepted
 
 **No container pooling.** Pre-warmed pools give you ~10-50ms latency instead of ~800ms. But session-scoped is simpler and the cold start hides behind LLM inference. I'll add pooling when latency actually becomes a problem.
