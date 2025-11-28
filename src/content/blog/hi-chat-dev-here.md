@@ -1,7 +1,7 @@
 ---
 title: 'hi chat, dev here'
 description: 'First post. What this blog is and why it exists.'
-pubDate: 'Nov 28 2025'
+pubDate: 2025-11-28T01:30:00
 tags: ['meta']
 ---
 

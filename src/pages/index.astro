@@ -1,5 +1,5 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
@@ -10,22 +10,14 @@ const posts = (await getCollection('blog')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 ).slice(0, 10);
 
-function getExcerpt(body: string, maxLength: number = 1200) {
-	const stripped = body.replace(/^---[\s\S]*?---/, '').trim();
-	const totalWords = stripped.split(/\s+/).length;
-
-	if (stripped.length <= maxLength) {
-		return { text: stripped, truncated: false, totalWords };
-	}
-
-	const truncated = stripped.slice(0, maxLength);
-	const lastSpace = truncated.lastIndexOf(' ');
-	return {
-		text: truncated.slice(0, lastSpace),
-		truncated: true,
-		totalWords
-	};
-}
+// Render all posts and get their HTML content
+const postsWithContent = await Promise.all(
+	posts.map(async (post) => {
+		const { Content } = await render(post);
+		const totalWords = (post.body || '').split(/\s+/).length;
+		return { post, Content, totalWords };
+	})
+);
 ---
 
 <!doctype html>
@@ -38,30 +30,29 @@ function getExcerpt(body: string, maxLength: number = 1200) {
 		<main>
 			<h1>Recent posts</h1>
 			<div class="post-list">
-				{posts.map((post) => {
-					const excerpt = getExcerpt(post.body || '');
-					return (
-						<article class="post-preview">
-							<header>
-								<span class="date"><FormattedDate date={post.data.pubDate} /></span>
-								{post.data.tags && (
-									<span class="tags">
-										{post.data.tags.map((tag) => (
-											<span class="tag">{tag}</span>
-										))}
-									</span>
-								)}
-							</header>
-							<h2><a href={`/blog/${post.id}/`}>{post.data.title}</a></h2>
-							<div class="excerpt">
-								<p>{excerpt.text}{excerpt.truncated && '...'}</p>
-								{excerpt.truncated && (
-									<p class="word-count">[... {excerpt.totalWords} words]</p>
-								)}
-							</div>
-						</article>
-					);
-				})}
+				{postsWithContent.map(({ post, Content, totalWords }) => (
+					<article class="post-preview">
+						<h2><a href={`/blog/${post.id}/`}>{post.data.title}</a></h2>
+						<div class={totalWords > 200 ? 'excerpt truncated' : 'excerpt'}>
+							<Content />
+						</div>
+						{totalWords > 200 && (
+							<p class="read-more">
+								<a href={`/blog/${post.id}/`}>[... {totalWords} words]</a>
+							</p>
+						)}
+						<div class="meta">
+							<span class="date"><FormattedDate date={post.data.pubDate} /></span>
+							{post.data.tags && (
+								<span class="tags">
+									{post.data.tags.map((tag) => (
+										<span class="tag">{tag}</span>
+									))}
+								</span>
+							)}
+						</div>
+					</article>
+				))}
 			</div>
 			<p class="all-posts"><a href="/blog">All posts &rarr;</a></p>
 		</main>
@@ -84,15 +75,15 @@ function getExcerpt(body: string, maxLength: number = 1200) {
 	.post-preview:last-child {
 		border-bottom: none;
 	}
-	.post-preview header {
+	.post-preview h2 {
+		margin: 0 0 0.25rem 0;
+		font-size: 1.25rem;
+	}
+	.meta {
 		display: flex;
 		align-items: center;
 		gap: 1rem;
-		margin-bottom: 0.5rem;
-	}
-	.post-preview h2 {
-		margin: 0 0 0.5rem 0;
-		font-size: 1.25rem;
+		margin-top: 0.5rem;
 	}
 	.post-preview h2 a {
 		text-decoration: none;
@@ -117,15 +108,48 @@ function getExcerpt(body: string, maxLength: number = 1200) {
 		content: '#';
 	}
 	.excerpt {
-		line-height: 1.6;
+		line-height: 1.3;
+		font-size: 0.9rem;
 	}
-	.excerpt p {
-		margin: 0;
+	.excerpt.truncated {
+		max-height: 18em;
+		overflow: hidden;
+		position: relative;
 	}
-	.word-count {
+	.excerpt.truncated::after {
+		content: '';
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		height: 2.5em;
+		background: linear-gradient(transparent, white);
+	}
+	.excerpt :global(p) {
+		margin: 0 0 0.35em 0;
+	}
+	.excerpt :global(h1),
+	.excerpt :global(h2),
+	.excerpt :global(h3),
+	.excerpt :global(h4),
+	.excerpt :global(h5),
+	.excerpt :global(h6) {
+		font-size: 0.9rem !important;
+		font-weight: 600;
+		margin: 0.5em 0 0.15em 0;
+	}
+	.excerpt :global(ul),
+	.excerpt :global(ol) {
+		margin: 0.2em 0;
+		padding-left: 1.1rem;
+	}
+	.excerpt :global(li) {
+		margin-bottom: 0;
+	}
+	.read-more {
 		color: var(--text-light);
 		font-size: 0.875rem;
-		margin-top: 0.5rem !important;
+		margin-top: 0.5rem;
 	}
 	.all-posts {
 		margin: 0;

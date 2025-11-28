@@ -54,3 +54,4 @@ Each entry captures a preference discovered during editing.
 ## Posts Written Together
 
 1. **hi-chat-dev-here.md** (2025-11-28) - First post, meta intro to the blog. Approved first draft.
+2. **anatomy-of-agentic-systems.md** (2025-11-28) - Technical intro to agentic systems. Headers work for longer technical posts.

@@ -1,7 +1,7 @@
 ---
 title: 'Anatomy of agentic systems'
 description: 'The basic ingredients of an agentic system and the pulls and levers we have to control behavior.'
-pubDate: 'Nov 28 2025'
+pubDate: 2025-11-28T14:00:00
 tags: ['llms', 'agents']
 ---
 
