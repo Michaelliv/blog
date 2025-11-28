@@ -1,0 +1,281 @@
+---
+// ClaudeChat - A claude.ai chat interface mockup
+// Renders structured conversation data in the claude.ai web style
+
+export interface ToolUse {
+  tool: string;      // Tool description, e.g. "Check kernel version"
+  command: string;   // The command run, e.g. "uname -a"
+  output: string;    // The result
+}
+
+export type ContentBlock = string | ToolUse;
+
+export interface HumanMessage {
+  role: 'human';
+  text: string;
+  initials?: string; // defaults to "U"
+}
+
+export interface AssistantMessage {
+  role: 'assistant';
+  content: ContentBlock[];
+}
+
+export type Message = HumanMessage | AssistantMessage;
+
+interface Props {
+  /** Array of messages to render */
+  messages: Message[];
+  /** Default initials for human avatar */
+  initials?: string;
+  /** Max height with scrolling (CSS value, e.g. "400px") */
+  maxHeight?: string;
+}
+
+const { messages, initials = 'U', maxHeight } = Astro.props;
+
+function isToolUse(block: ContentBlock): block is ToolUse {
+  return typeof block === 'object' && 'tool' in block;
+}
+---
+
+<div class="claude-chat" style={maxHeight ? `max-height: ${maxHeight}; overflow-y: auto;` : ''}>
+  {messages.map((msg) => (
+    msg.role === 'human' ? (
+      <div class="human">
+        <div class="human-bubble">
+          <div class="human-avatar">{msg.initials || initials}</div>
+          <span class="human-text">{msg.text}</span>
+        </div>
+      </div>
+    ) : (
+      <div class="assistant">
+        <div class="assistant-message">
+          {msg.content.map((block) => (
+            isToolUse(block) ? (
+              <div class="tool-use">
+                <div class="tool-header">
+                  <div class="tool-header-left">
+                    <span class="tool-icon">▶</span>
+                    <span class="tool-name">{block.tool}</span>
+                  </div>
+                  <span class="tool-chevron">▼</span>
+                </div>
+                <div class="tool-output">
+                  <div class="tool-cmd">
+                    <div class="tool-cmd-label">bash</div>
+                    <code>{block.command}</code>
+                  </div>
+                  <div class="tool-result">
+                    <div class="tool-result-label">Output</div>
+                    <pre>{block.output}</pre>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p>{block}</p>
+            )
+          ))}
+        </div>
+      </div>
+    )
+  ))}
+</div>
+
+<style>
+  /* Claude.ai dark mode color palette (warm grays):
+     --bg-000: #2f2f2d  (main background)
+     --bg-100: #262625  (tool blocks, cards)
+     --bg-200: #1f1e1d  (darker areas)
+     --text-100: #faf8f3  (primary text - warm white)
+     --text-200: #bfbdb5  (secondary text)
+     --text-400: #9a9892  (muted text)
+     --border: hsla(51, 16.5%, 84.5%, 0.15)
+  */
+
+  .claude-chat {
+    padding: 16px 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  /* Human message container */
+  .human {
+    margin-bottom: 24px;
+  }
+
+  /* Human bubble - rounded rectangle, darker than background */
+  .human-bubble {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 8px;
+    color: #faf8f3;
+    background: #141413;
+    padding: 10px 24px 10px 10px;
+    border-radius: 12px;
+    max-width: 85%;
+  }
+
+  /* Avatar - circle inside bubble */
+  .human-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #bfbdb5;
+    color: #141413;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .human-text {
+    line-height: 1.4;
+  }
+
+  /* Assistant message container */
+  .assistant {
+    margin-bottom: 24px;
+    padding-left: 8px;
+  }
+
+  /* Assistant text */
+  .assistant-message {
+    color: #faf8f3;
+  }
+
+  .assistant-message p {
+    margin: 0 0 10px 0;
+  }
+
+  .assistant-message p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Tool use block - matches claude.ai collapsed row */
+  .tool-use {
+    border: 0.5px solid hsla(51, 16.5%, 84.5%, 0.15);
+    border-radius: 8px;
+    margin: 12px 0;
+    overflow: hidden;
+  }
+
+  /* Tool header - clickable row */
+  .tool-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 4px 8px;
+    min-height: 26px;
+    cursor: pointer;
+  }
+
+  .tool-header:hover {
+    background: rgba(255,255,255,0.04);
+  }
+
+  .tool-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  /* Terminal icon container */
+  .tool-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #faf8f3;
+    flex-shrink: 0;
+  }
+
+  /* Tool description text */
+  .tool-name {
+    color: #faf8f3;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 14px;
+    font-weight: 400;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Chevron */
+  .tool-chevron {
+    color: #9a9892;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  /* Tool output container - the expanded content */
+  .tool-output {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+    padding-top: 4px;
+  }
+
+  /* Command block */
+  .tool-cmd {
+    background: #262625;
+    border-radius: 6px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Command label */
+  .tool-cmd-label {
+    color: #9a9892;
+    font-size: 11px;
+    font-family: "SF Mono", Consolas, monospace;
+    font-weight: 450;
+  }
+
+  .tool-cmd code {
+    color: #bfbdb5;
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    background: transparent;
+    border: none;
+    padding: 0;
+  }
+
+  /* Output block */
+  .tool-result {
+    background: #262625;
+    border-radius: 6px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tool-result-label {
+    color: #9a9892;
+    font-size: 11px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-weight: 500;
+  }
+
+  .tool-result pre {
+    margin: 0;
+    color: #bfbdb5;
+    font-family: "SF Mono", Consolas, monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: transparent;
+  }
+</style>

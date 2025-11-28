@@ -56,3 +56,4 @@ Each entry captures a preference discovered during editing.
 1. **hi-chat-dev-here.md** (2025-11-28) - First post, meta intro to the blog. Approved first draft.
 2. **anatomy-of-agentic-systems.md** (2025-11-28) - Technical intro to agentic systems. Headers work for longer technical posts.
 3. **embedding-claude-code-sessions.mdx** (2025-11-28) - Meta post about building a ChatSession component. Uses the component it describes. MDX for component embedding.
+4. **sandboxed-execution-environment.md** (2025-11-28) - Technical deep-dive on building sandboxed execution. Narrative framing works well (strategic bet → exploration → implementation). Code blocks interspersed with explanation.

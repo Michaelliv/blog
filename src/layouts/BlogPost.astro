@@ -1,13 +1,17 @@
 ---
+import Analytics from '@vercel/analytics/astro';
 import type { CollectionEntry } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
 
-type Props = CollectionEntry<'blog'>['data'];
+type Props = CollectionEntry<'blog'>['data'] & {
+	prevPost?: CollectionEntry<'blog'> | null;
+	nextPost?: CollectionEntry<'blog'> | null;
+};
 
-const { title, description, pubDate, updatedDate } = Astro.props;
+const { title, description, pubDate, updatedDate, prevPost, nextPost } = Astro.props;
 ---
 
 <html lang="en">
@@ -16,27 +20,85 @@ const { title, description, pubDate, updatedDate } = Astro.props;
 	</head>
 	<body>
 		<Header />
-		<main>
-			<article>
-				<header class="post-header">
-					<h1>{title}</h1>
-					<p class="date">
-						<FormattedDate date={pubDate} />
-						{updatedDate && (
-							<span class="updated"> (updated <FormattedDate date={updatedDate} />)</span>
-						)}
-					</p>
-				</header>
-				<div class="content">
-					<slot />
-				</div>
-			</article>
-		</main>
+		<div class="layout">
+			<main>
+				<article>
+					<header class="post-header">
+						<h1>{title}</h1>
+						<p class="date">
+							<FormattedDate date={pubDate} />
+							{updatedDate && (
+								<span class="updated"> (updated <FormattedDate date={updatedDate} />)</span>
+							)}
+						</p>
+					</header>
+					<div class="content">
+						<slot />
+					</div>
+				</article>
+			</main>
+			<aside>
+				{nextPost && (
+					<div class="nav-item">
+						<span class="nav-label">Next</span>
+						<a href={`/blog/${nextPost.id}/`}>{nextPost.data.title}</a>
+						<p class="nav-desc">{nextPost.data.description}</p>
+					</div>
+				)}
+				{prevPost && (
+					<div class="nav-item">
+						<span class="nav-label">Prev</span>
+						<a href={`/blog/${prevPost.id}/`}>{prevPost.data.title}</a>
+						<p class="nav-desc">{prevPost.data.description}</p>
+					</div>
+				)}
+			</aside>
+		</div>
 		<Footer />
+		<Analytics />
 	</body>
 </html>
 
 <style>
+	.layout {
+		display: grid;
+		grid-template-columns: 4fr 1fr;
+		gap: 2rem;
+		max-width: 850px;
+		margin: 0 auto;
+		padding: 2rem 1rem;
+	}
+	main {
+		max-width: none;
+		margin: 0;
+		padding: 0;
+	}
+	aside {
+		font-size: 0.85rem;
+		padding-top: 3rem;
+	}
+	.nav-item {
+		margin-bottom: 1.5rem;
+	}
+	.nav-label {
+		display: block;
+		color: var(--text-light);
+		font-size: 0.75rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+	.nav-item a {
+		text-decoration: none;
+	}
+	.nav-item a:hover {
+		text-decoration: underline;
+	}
+	.nav-desc {
+		color: var(--text-light);
+		font-size: 0.75rem;
+		margin: 0.25rem 0 0 0;
+		line-height: 1.3;
+	}
 	.post-header {
 		margin-bottom: 2rem;
 	}
@@ -50,5 +112,14 @@ const { title, description, pubDate, updatedDate } = Astro.props;
 	}
 	.updated {
 		font-style: italic;
+	}
+	@media (max-width: 768px) {
+		.layout {
+			grid-template-columns: 1fr;
+		}
+		aside {
+			padding-top: 1rem;
+			border-top: 1px solid var(--border);
+		}
 	}
 </style>
