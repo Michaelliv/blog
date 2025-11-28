@@ -1,0 +1,76 @@
+---
+title: 'Embedding Claude Code sessions in blog posts'
+description: 'Building an Astro component to render real Claude Code chat sessions. This post uses the component it describes.'
+pubDate: 2025-11-28T17:00:00
+tags: ['astro', 'claude-code', 'meta']
+---
+import ChatSession from '../../components/ChatSession.astro';
+
+I wanted a way to share Claude Code sessions in blog posts. Not screenshots. Not copy-pasted text. The actual terminal experience - dark background, tool calls, the whole thing.
+
+This post is about building that. And it uses the component it describes.
+
+## The idea
+
+I was setting up this blog with Claude Code when the thought hit: what if I could embed these sessions directly?
+
+<ChatSession session={[
+  { role: "user", content: "my end goal is to be able to render chat like snapshots of this exact environment, so it should look like a terminal, lets brainstorm, any lib for that? should we just implement a component?" },
+  { role: "assistant", content: "Good idea for an AI/agents blog. A few options:\n\nExisting libs:\n- termynal - lightweight, animated typing effect, but more for commands than chat\n- asciinema - full terminal recordings, but overkill for static snapshots\n- xterm.js - actual terminal emulator, way too heavy\n\nCustom component (my recommendation):\n- Build a simple Astro component that mimics the Claude Code look\n- Dark bg, monospace, styled user/assistant turns\n- Maybe tool calls get a different treatment\n- Full control over styling to match your blog aesthetic" }
+]} />
+
+Custom component it is.
+
+## Finding the format
+
+Claude Code stores sessions locally. I didn't know the format, so we went looking.
+
+<ChatSession session={[
+  { role: "user", content: "id like to be able to input real chat sessions (as they are stored locally, or parts of them" },
+  { role: "assistant", content: "That changes things - we'd parse the actual session format rather than authoring manually.\n\nLet me find where Claude Code stores sessions and what the format looks like:" },
+  { role: "assistant", content: "", tools: [{ name: "Bash", input: { command: "ls -la ~/.claude/" } }] },
+  { role: "assistant", content: "", tools: [{ name: "Bash", input: { command: "head -20 ~/.claude/projects/.../session.jsonl" } }] },
+  { role: "assistant", content: "This is great. The session format is clear:\n\nLocation: ~/.claude/projects/{project-path}/{session-id}.jsonl\n\nFormat: JSONL (one JSON object per line) with these types:\n- type: \"user\" - User messages\n- type: \"assistant\" - Assistant responses containing:\n  - type: \"text\" - The actual response text\n  - type: \"thinking\" - Extended thinking blocks\n  - type: \"tool_use\" - Tool calls with name and input" }
+]} />
+
+JSONL. One JSON object per line. Each message has a type (user/assistant), content blocks for text, tool calls, and thinking. Clean enough to parse.
+
+## Building it
+
+Two files:
+
+1. **parseSession.ts** - Reads the JSONL, filters out metadata, deduplicates streamed messages
+2. **ChatSession.astro** - Renders the parsed messages with terminal styling
+
+<ChatSession session={[
+  { role: "user", content: "yes" },
+  { role: "assistant", content: "", tools: [{ name: "Write", input: { file_path: "src/utils/parseSession.ts" } }] },
+  { role: "assistant", content: "", tools: [{ name: "Write", input: { file_path: "src/components/ChatSession.astro" } }] }
+]} />
+
+The component accepts a session prop in three formats: typed arrays (cleanest), imported JSONL files, or inline strings.
+
+## The result
+
+<ChatSession session={[
+  { role: "user", content: "FUCKING AMAZING." },
+  { role: "assistant", content: "Hell yes.\n\nWhat we built:\n- src/utils/parseSession.ts - Parses Claude Code JSONL sessions\n- src/components/ChatSession.astro - Renders them as terminal UI" }
+]} />
+
+Usage with typed arrays (recommended):
+
+```mdx
+<ChatSession session={[
+  { role: "user", content: "hello" },
+  { role: "assistant", content: "Hi there!", tools: [{ name: "Read", input: { file_path: "foo.ts" } }] }
+]} />
+```
+
+## What's next
+
+The component is basic. Could add:
+- Actual tool output (file contents, command results)
+- Collapsible long outputs
+- Syntax highlighting in code blocks
+
+But it works. I can now embed real sessions, not reconstructions.

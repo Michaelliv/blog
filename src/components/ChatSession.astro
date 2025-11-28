@@ -1,0 +1,291 @@
+---
+import { normalizeSession, extractRange, type ChatMessage, type ContentBlock, type ToolUseBlock, type SimpleMessage } from '../utils/parseSession';
+
+interface Props {
+  /** Session data: JSONL string, SimpleMessage[], or ChatMessage[] */
+  session: string | SimpleMessage[] | ChatMessage[];
+  /** Start from this message UUID */
+  fromUuid?: string;
+  /** End at this message UUID */
+  toUuid?: string;
+  /** Limit number of messages */
+  limit?: number;
+  /** Show thinking blocks */
+  showThinking?: boolean;
+}
+
+const { session, fromUuid, toUuid, limit, showThinking = false } = Astro.props;
+
+const allMessages = normalizeSession(session);
+const messages = extractRange(allMessages, { fromUuid, toUuid, limit });
+
+function formatToolCall(tool: ToolUseBlock): string {
+  const input = tool.input;
+  // Format as ToolName(key: value) or ToolName(key: "value") for strings
+  const params = Object.entries(input)
+    .map(([k, v]) => {
+      if (typeof v === 'string') {
+        // Truncate long strings
+        const display = v.length > 40 ? v.slice(0, 40) + '...' : v;
+        return `${k}: "${display}"`;
+      }
+      return `${k}: ${JSON.stringify(v)}`;
+    })
+    .join(', ');
+  return `${tool.name}(${params})`;
+}
+
+function getToolCalls(content: ContentBlock[] | string): ToolUseBlock[] {
+  if (typeof content === 'string') return [];
+  return content.filter((b): b is ToolUseBlock => b.type === 'tool_use');
+}
+
+function getTextContent(content: ContentBlock[] | string): string {
+  if (typeof content === 'string') return content;
+  const textBlocks = content.filter((b) => b.type === 'text');
+  return textBlocks.map((b) => (b as { text: string }).text).join('\n');
+}
+
+function getThinkingContent(content: ContentBlock[] | string): string | null {
+  if (typeof content === 'string') return null;
+  const thinkingBlocks = content.filter((b) => b.type === 'thinking');
+  if (thinkingBlocks.length === 0) return null;
+  return thinkingBlocks.map((b) => (b as { thinking: string }).thinking).join('\n');
+}
+
+// Split text into lines for proper rendering
+function textToLines(text: string): string[] {
+  return text.split('\n');
+}
+---
+
+<div class="chat-session">
+  <div class="terminal-header">
+    <div class="terminal-buttons">
+      <span class="btn close"></span>
+      <span class="btn minimize"></span>
+      <span class="btn maximize"></span>
+    </div>
+    <span class="terminal-title">claude</span>
+  </div>
+  <div class="terminal-body">
+    {messages.map((msg) => (
+      <div class="message-block">
+        {msg.role === 'user' ? (
+          <div class="user-message">
+            <span class="prompt">&gt;</span>
+            <span class="user-text">{typeof msg.content === 'string' ? msg.content : getTextContent(msg.content)}</span>
+          </div>
+        ) : (
+          <div class="assistant-block">
+            {/* Tool calls */}
+            {getToolCalls(msg.content).map((tool) => (
+              <div class="tool-call">
+                <div class="tool-header">
+                  <span class="bullet">⏺</span>
+                  <span class="tool-name">{formatToolCall(tool)}</span>
+                </div>
+                <div class="tool-output">
+                  <span class="output-bracket">⎿</span>
+                  <span class="output-hint">(output hidden)</span>
+                </div>
+              </div>
+            ))}
+
+            {/* Thinking (if enabled) */}
+            {showThinking && getThinkingContent(msg.content) && (
+              <details class="thinking">
+                <summary>
+                  <span class="bullet">⏺</span>
+                  <span class="thinking-label">Thinking...</span>
+                </summary>
+                <div class="thinking-content">
+                  {textToLines(getThinkingContent(msg.content) || '').map((line) => (
+                    <div class="thinking-line">{line}</div>
+                  ))}
+                </div>
+              </details>
+            )}
+
+            {/* Text response */}
+            {getTextContent(msg.content) && (
+              <div class="assistant-text">
+                <span class="bullet">⏺</span>
+                <div class="text-content">
+                  {textToLines(getTextContent(msg.content)).map((line, i) => (
+                    <div class="text-line">{line || '\u00A0'}</div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  .chat-session {
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+    font-family: "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 13px;
+    line-height: 1.4;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .terminal-header {
+    background: #3c3c3c;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .terminal-buttons {
+    display: flex;
+    gap: 6px;
+  }
+
+  .terminal-buttons .btn {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+
+  .btn.close { background: #ff5f57; }
+  .btn.minimize { background: #ffbd2e; }
+  .btn.maximize { background: #28ca41; }
+
+  .terminal-title {
+    color: #999;
+    font-size: 12px;
+    flex: 1;
+    text-align: center;
+    margin-right: 60px;
+  }
+
+  .terminal-body {
+    background: #1a1a1a;
+    padding: 16px;
+    color: #e0e0e0;
+    max-height: 600px;
+    overflow-y: auto;
+  }
+
+  .message-block {
+    margin-bottom: 12px;
+  }
+
+  .message-block:last-child {
+    margin-bottom: 0;
+  }
+
+  /* User messages */
+  .user-message {
+    display: flex;
+    gap: 8px;
+  }
+
+  .prompt {
+    color: #4ec9b0;
+    font-weight: 500;
+  }
+
+  .user-text {
+    color: #e0e0e0;
+  }
+
+  /* Assistant blocks */
+  .assistant-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .bullet {
+    color: #569cd6;
+    margin-right: 6px;
+  }
+
+  /* Tool calls */
+  .tool-call {
+    margin-left: 0;
+  }
+
+  .tool-header {
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .tool-name {
+    color: #dcdcaa;
+  }
+
+  .tool-output {
+    margin-left: 18px;
+    color: #6a9955;
+    font-size: 12px;
+  }
+
+  .output-bracket {
+    color: #555;
+    margin-right: 4px;
+  }
+
+  .output-hint {
+    color: #666;
+    font-style: italic;
+  }
+
+  /* Text response */
+  .assistant-text {
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .text-content {
+    flex: 1;
+  }
+
+  .text-line {
+    min-height: 1.4em;
+  }
+
+  /* Thinking blocks */
+  .thinking {
+    margin-left: 0;
+  }
+
+  .thinking summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+  }
+
+  .thinking summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .thinking-label {
+    color: #888;
+    font-style: italic;
+  }
+
+  .thinking-content {
+    margin-left: 24px;
+    padding: 8px;
+    background: #252525;
+    border-radius: 4px;
+    margin-top: 4px;
+    color: #888;
+    font-size: 12px;
+  }
+
+  .thinking-line {
+    min-height: 1.3em;
+  }
+</style>
