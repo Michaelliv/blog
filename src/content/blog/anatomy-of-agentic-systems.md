@@ -33,7 +33,7 @@ When an agent misbehaves, you have a few places to intervene:
 
 **Context injection.** You can inject information into the conversation at runtime. Reminders, state summaries, retrieved documents. This is how you keep the agent on track as the conversation grows.
 
-**Output parsing.** You can validate and filter what comes out. Reject malformed responses, strip unwanted content, enforce schemas. This is your last line of defense.
+**Structured output.** You can constrain what comes out. Enforce schemas, reject malformed responses, guarantee valid JSON. This is your last line of defense.
 
 **Temperature and sampling.** Lower temperature means more deterministic outputs. Sometimes you want creativity, sometimes you want reliability.
 
