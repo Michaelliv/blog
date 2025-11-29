@@ -427,9 +427,9 @@ The interesting number is concurrent scaling: latency increases from 9ms to 13ms
 
 **No container pooling.** Pre-warmed pools give you ~10-50ms latency instead of ~500ms. But session-scoped is simpler and the cold start hides behind LLM inference. I'll add pooling when latency actually becomes a problem.
 
-**No snapshot/restore.** Firecracker can snapshot a running VM and restore in ~5ms. gVisor doesn't support this. If I ever need sub-second container startup, I'll revisit Firecracker and accept the operational complexity.
+**No snapshot/restore.** Firecracker can snapshot a running VM and restore in 5-25ms. gVisor doesn't support this. If I ever need sub-second container startup, I'll revisit Firecracker and accept the operational complexity.
 
-**Egress proxy is another service to run.** The JWT-based proxy adds infrastructure. For a simple setup, `network_mode: none` is easier. But it's worth it - agents that can't pip install are significantly less useful.
+**Egress proxy is a separate process.** The JWT-based proxy runs alongside your application. For a simple setup, `network_mode: none` is easier. But it's worth it - agents that can't pip install are significantly less useful.
 
 **gVisor's syscall overhead.** Some workloads see 2-10x slowdown on syscall-heavy operations. For "run Python scripts and shell commands" this is negligible. For high-frequency I/O, you'd notice.
 
