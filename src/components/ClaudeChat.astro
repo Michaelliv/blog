@@ -218,19 +218,19 @@ function isToolUse(block: ContentBlock): block is ToolUse {
   .tool-output {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding: 12px;
-    padding-top: 4px;
+    gap: 8px;
+    padding: 8px;
+    padding-top: 0;
   }
 
   /* Command block */
   .tool-cmd {
     background: #262625;
     border-radius: 6px;
-    padding: 12px;
+    padding: 8px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
   }
 
   /* Command label */
@@ -244,8 +244,8 @@ function isToolUse(block: ContentBlock): block is ToolUse {
   .tool-cmd code {
     color: #bfbdb5;
     font-family: "SF Mono", Consolas, monospace;
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 13px;
+    line-height: 1.4;
     background: transparent;
     border: none;
     padding: 0;
@@ -255,10 +255,10 @@ function isToolUse(block: ContentBlock): block is ToolUse {
   .tool-result {
     background: #262625;
     border-radius: 6px;
-    padding: 12px;
+    padding: 8px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
   }
 
   .tool-result-label {
@@ -270,10 +270,11 @@ function isToolUse(block: ContentBlock): block is ToolUse {
 
   .tool-result pre {
     margin: 0;
+    padding: 0;
     color: #bfbdb5;
     font-family: "SF Mono", Consolas, monospace;
-    font-size: 14px;
-    line-height: 1.5;
+    font-size: 13px;
+    line-height: 1.4;
     white-space: pre-wrap;
     word-break: break-word;
     background: transparent;
