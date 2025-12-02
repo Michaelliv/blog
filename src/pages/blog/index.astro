@@ -90,6 +90,7 @@ function getExcerpt(body: string, maxLength: number = 1200) {
 		align-items: center;
 		gap: 1rem;
 		margin-bottom: 0.5rem;
+		flex-wrap: wrap;
 	}
 	.post-preview h2 {
 		margin: 0 0 0.5rem 0;
@@ -109,6 +110,7 @@ function getExcerpt(body: string, maxLength: number = 1200) {
 	.tags {
 		display: flex;
 		gap: 0.5rem;
+		flex-wrap: wrap;
 	}
 	.tag {
 		font-size: 0.75rem;
@@ -127,5 +129,25 @@ function getExcerpt(body: string, maxLength: number = 1200) {
 		color: var(--text-light);
 		font-size: 0.875rem;
 		margin-top: 0.5rem !important;
+	}
+
+	@media (max-width: 480px) {
+		.post-preview {
+			margin-bottom: 1.5rem;
+			padding-bottom: 1.5rem;
+		}
+		.post-preview header {
+			gap: 0.5rem;
+		}
+		.post-preview h2 {
+			font-size: 1.1rem;
+		}
+		.date {
+			font-size: 0.8rem;
+		}
+		.excerpt {
+			font-size: 0.9rem;
+			line-height: 1.5;
+		}
 	}
 </style>

@@ -45,6 +45,7 @@ const { title = "terminal", maxHeight = "600px" } = Astro.props;
   .terminal-buttons {
     display: flex;
     gap: 6px;
+    flex-shrink: 0;
   }
 
   .terminal-buttons .btn {
@@ -62,7 +63,9 @@ const { title = "terminal", maxHeight = "600px" } = Astro.props;
     font-size: 12px;
     flex: 1;
     text-align: center;
-    margin-right: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .terminal-body {
@@ -71,12 +74,31 @@ const { title = "terminal", maxHeight = "600px" } = Astro.props;
     color: #e0e0e0;
     overflow-y: auto;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: 640px) {
+    .terminal {
+      margin: 1rem -1rem;
+      border-radius: 0;
+    }
+
+    .terminal-header {
+      padding: 6px 12px;
+    }
+
+    .terminal-buttons .btn {
+      width: 10px;
+      height: 10px;
+    }
+
+    .terminal-title {
+      font-size: 11px;
+    }
+
     .terminal-body {
       padding: 12px;
-      font-size: 12px;
+      font-size: 11px;
     }
   }
 </style>

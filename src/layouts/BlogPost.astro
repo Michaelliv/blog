@@ -72,6 +72,8 @@ const { title, description, pubDate, updatedDate, prevPost, nextPost } = Astro.p
 		max-width: none;
 		margin: 0;
 		padding: 0;
+		/* Prevent content from overflowing grid */
+		min-width: 0;
 	}
 	aside {
 		font-size: 0.85rem;
@@ -104,6 +106,7 @@ const { title, description, pubDate, updatedDate, prevPost, nextPost } = Astro.p
 	}
 	.post-header h1 {
 		margin-bottom: 0.5rem;
+		margin-top: 0;
 	}
 	.date {
 		color: var(--text-light);
@@ -113,13 +116,34 @@ const { title, description, pubDate, updatedDate, prevPost, nextPost } = Astro.p
 	.updated {
 		font-style: italic;
 	}
+
+	/* Content styling - ensure components don't overflow */
+	.content {
+		overflow-wrap: break-word;
+		word-wrap: break-word;
+	}
+
+	.content :global(pre) {
+		max-width: 100%;
+	}
+
 	@media (max-width: 768px) {
 		.layout {
 			grid-template-columns: 1fr;
+			padding: 1.5rem 1rem;
 		}
 		aside {
 			padding-top: 1rem;
 			border-top: 1px solid var(--border);
+		}
+	}
+
+	@media (max-width: 480px) {
+		.post-header {
+			margin-bottom: 1.5rem;
+		}
+		.post-header h1 {
+			font-size: 1.25rem;
 		}
 	}
 </style>

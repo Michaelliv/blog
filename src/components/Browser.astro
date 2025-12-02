@@ -45,7 +45,6 @@ const { url = "https://example.com", title = "New Tab" } = Astro.props;
     margin: 1.5rem 0;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    max-width: 100%;
   }
 
   .browser-chrome {
@@ -66,8 +65,9 @@ const { url = "https://example.com", title = "New Tab" } = Astro.props;
     display: flex;
     align-items: center;
     gap: 8px;
-    min-width: 120px;
+    min-width: 0;
     max-width: 200px;
+    flex: 1;
   }
 
   .tab.active {
@@ -87,6 +87,7 @@ const { url = "https://example.com", title = "New Tab" } = Astro.props;
     color: #9aa0a6;
     font-size: 14px;
     cursor: pointer;
+    flex-shrink: 0;
   }
 
   .new-tab {
@@ -94,6 +95,7 @@ const { url = "https://example.com", title = "New Tab" } = Astro.props;
     padding: 8px 12px;
     font-size: 14px;
     cursor: pointer;
+    flex-shrink: 0;
   }
 
   .toolbar {
@@ -107,6 +109,7 @@ const { url = "https://example.com", title = "New Tab" } = Astro.props;
   .nav-buttons {
     display: flex;
     gap: 4px;
+    flex-shrink: 0;
   }
 
   .nav-btn {
@@ -118,6 +121,7 @@ const { url = "https://example.com", title = "New Tab" } = Astro.props;
 
   .address-bar {
     flex: 1;
+    min-width: 0;
     background: #202124;
     border-radius: 16px;
     padding: 6px 12px;
@@ -128,11 +132,19 @@ const { url = "https://example.com", title = "New Tab" } = Astro.props;
 
   .lock {
     font-size: 12px;
+    flex-shrink: 0;
   }
 
   .url {
     color: #e8eaed;
     font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .toolbar-actions {
+    flex-shrink: 0;
   }
 
   .toolbar-actions .action {
@@ -145,24 +157,54 @@ const { url = "https://example.com", title = "New Tab" } = Astro.props;
   .browser-content {
     background: #2f2f2d;
     min-height: 200px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: 640px) {
+    .browser {
+      margin: 1rem -1rem;
+      border-radius: 0;
+    }
+
+    .tab-bar {
+      padding: 6px 6px 0 6px;
+    }
+
+    .tab {
+      padding: 6px 10px;
+      max-width: none;
+    }
+
+    .tab-title {
+      font-size: 11px;
+    }
+
+    .tab-close,
+    .new-tab {
+      display: none;
+    }
+
+    .toolbar {
+      padding: 4px 6px;
+      gap: 6px;
+    }
+
     .nav-buttons {
       display: none;
     }
-    .tab {
-      min-width: 80px;
-      padding: 6px 10px;
-    }
+
     .address-bar {
       padding: 4px 8px;
+      gap: 6px;
     }
+
     .url {
       font-size: 11px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+    }
+
+    .toolbar-actions {
+      display: none;
     }
   }
 </style>
