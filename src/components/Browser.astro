@@ -146,4 +146,23 @@ const { url = "https://example.com", title = "New Tab" } = Astro.props;
     background: #2f2f2d;
     min-height: 200px;
   }
+
+  @media (max-width: 480px) {
+    .nav-buttons {
+      display: none;
+    }
+    .tab {
+      min-width: 80px;
+      padding: 6px 10px;
+    }
+    .address-bar {
+      padding: 4px 8px;
+    }
+    .url {
+      font-size: 11px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
 </style>

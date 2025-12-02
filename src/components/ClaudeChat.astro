@@ -100,6 +100,21 @@ function isToolUse(block: ContentBlock): block is ToolUse {
     line-height: 1.65;
   }
 
+  @media (max-width: 480px) {
+    .claude-chat {
+      padding: 12px;
+      font-size: 13px;
+    }
+    .human-bubble {
+      max-width: 95%;
+      padding: 8px 12px 8px 8px;
+    }
+    .tool-cmd code,
+    .tool-result pre {
+      font-size: 11px;
+    }
+  }
+
   /* Human message container */
   .human {
     margin-bottom: 24px;

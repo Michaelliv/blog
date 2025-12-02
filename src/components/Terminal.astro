@@ -70,5 +70,13 @@ const { title = "terminal", maxHeight = "600px" } = Astro.props;
     padding: 16px;
     color: #e0e0e0;
     overflow-y: auto;
+    overflow-x: auto;
+  }
+
+  @media (max-width: 480px) {
+    .terminal-body {
+      padding: 12px;
+      font-size: 12px;
+    }
   }
 </style>
