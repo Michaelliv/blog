@@ -39,48 +39,74 @@ function isToolUse(block: ContentBlock): block is ToolUse {
 }
 ---
 
-<div class="claude-chat" style={maxHeight ? `max-height: ${maxHeight}; overflow-y: auto;` : ''}>
-  {messages.map((msg) => (
-    msg.role === 'human' ? (
-      <div class="human">
-        <div class="human-bubble">
-          <div class="human-avatar">{msg.initials || initials}</div>
-          <span class="human-text">{msg.text}</span>
+<div class="claude-chat-wrapper" data-has-scroll={maxHeight ? "true" : undefined}>
+  <div class="claude-chat" style={maxHeight ? `max-height: ${maxHeight}; overflow-y: auto;` : ''}>
+    {messages.map((msg) => (
+      msg.role === 'human' ? (
+        <div class="human">
+          <div class="human-bubble">
+            <div class="human-avatar">{msg.initials || initials}</div>
+            <span class="human-text">{msg.text}</span>
+          </div>
         </div>
-      </div>
-    ) : (
-      <div class="assistant">
-        <div class="assistant-message">
-          {msg.content.map((block) => (
-            isToolUse(block) ? (
-              <div class="tool-use">
-                <div class="tool-header">
-                  <div class="tool-header-left">
-                    <span class="tool-icon">▶</span>
-                    <span class="tool-name">{block.tool}</span>
+      ) : (
+        <div class="assistant">
+          <div class="assistant-message">
+            {msg.content.map((block) => (
+              isToolUse(block) ? (
+                <div class="tool-use">
+                  <div class="tool-header">
+                    <div class="tool-header-left">
+                      <span class="tool-icon">▶</span>
+                      <span class="tool-name">{block.tool}</span>
+                    </div>
+                    <span class="tool-chevron">▼</span>
                   </div>
-                  <span class="tool-chevron">▼</span>
+                  <div class="tool-output">
+                    <div class="tool-cmd">
+                      <div class="tool-cmd-label">bash</div>
+                      <code>{block.command}</code>
+                    </div>
+                    <div class="tool-result">
+                      <div class="tool-result-label">Output</div>
+                      <pre>{block.output}</pre>
+                    </div>
+                  </div>
                 </div>
-                <div class="tool-output">
-                  <div class="tool-cmd">
-                    <div class="tool-cmd-label">bash</div>
-                    <code>{block.command}</code>
-                  </div>
-                  <div class="tool-result">
-                    <div class="tool-result-label">Output</div>
-                    <pre>{block.output}</pre>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <p>{block}</p>
-            )
-          ))}
+              ) : (
+                <p>{block}</p>
+              )
+            ))}
+          </div>
         </div>
-      </div>
-    )
-  ))}
+      )
+    ))}
+  </div>
+  <div class="scroll-fade"></div>
 </div>
+
+<script>
+  function initScrollFade() {
+    document.querySelectorAll('.claude-chat-wrapper[data-has-scroll]').forEach(wrapper => {
+      const chat = wrapper.querySelector('.claude-chat');
+      const fade = wrapper.querySelector('.scroll-fade');
+      if (!chat || !fade) return;
+
+      function updateFade() {
+        const isScrollable = chat.scrollHeight > chat.clientHeight;
+        const isAtBottom = chat.scrollHeight - chat.scrollTop - chat.clientHeight < 10;
+        fade.classList.toggle('visible', isScrollable && !isAtBottom);
+      }
+
+      chat.addEventListener('scroll', updateFade);
+      updateFade();
+      window.addEventListener('load', updateFade);
+    });
+  }
+
+  initScrollFade();
+  document.addEventListener('astro:after-swap', initScrollFade);
+</script>
 
 <style>
   /* Claude.ai dark mode color palette (warm grays):
@@ -92,6 +118,26 @@ function isToolUse(block: ContentBlock): block is ToolUse {
      --text-400: #9a9892  (muted text)
      --border: hsla(51, 16.5%, 84.5%, 0.15)
   */
+
+  .claude-chat-wrapper {
+    position: relative;
+  }
+
+  .scroll-fade {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    background: linear-gradient(to bottom, transparent, rgba(0, 0, 0, 0.5));
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .scroll-fade.visible {
+    opacity: 1;
+  }
 
   .claude-chat {
     padding: 16px 24px;
