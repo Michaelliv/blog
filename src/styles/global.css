@@ -1,5 +1,6 @@
 /* Nerdy minimal - no fluff */
 
+/* Light mode (default) */
 :root {
 	--text: #222;
 	--text-light: #666;
@@ -8,6 +9,41 @@
 	--code-bg: #f5f5f5;
 	--border: #ddd;
 	--accent: #22863a;
+
+	/* Header-specific colors */
+	--header-bg: #f3f7f3;
+	--header-border: #d0d7de;
+	--header-title: #116329;
+	--header-tagline: #656d76;
+
+	/* Selection colors */
+	--selection-bg: #b3d4fc;
+	--selection-text: #000;
+
+	color-scheme: light dark;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+	:root {
+		--text: #e0e0e0;
+		--text-light: #a0a0a0;
+		--link: #6ba3ff;
+		--bg: #161b22;
+		--code-bg: #21262d;
+		--border: #30363d;
+		--accent: #4da660;
+
+		/* Header-specific colors */
+		--header-bg: #0d1117;
+		--header-border: #30363d;
+		--header-title: #7ee787;
+		--header-tagline: #8b949e;
+
+		/* Selection colors */
+		--selection-bg: #264f78;
+		--selection-text: #fff;
+	}
 }
 
 * {
@@ -161,6 +197,19 @@ th {
 	border: 0;
 }
 
+/* Text selection */
+::selection {
+	background: var(--selection-bg);
+	color: var(--selection-text);
+}
+
+/* Tablet styles */
+@media (max-width: 768px) and (min-width: 641px) {
+	main {
+		padding: 2rem 1.5rem;
+	}
+}
+
 /* Mobile styles */
 @media (max-width: 640px) {
 	body {
@@ -190,5 +239,77 @@ th {
 
 	th, td {
 		padding: 0.375rem 0.5rem;
+	}
+}
+
+/* Accessibility: Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
+/* Accessibility: High contrast mode */
+@media (prefers-contrast: more) {
+	:root {
+		--text: #000;
+		--text-light: #333;
+		--link: #0000ee;
+		--bg: #fff;
+		--code-bg: #eee;
+		--border: #000;
+		--accent: #006600;
+		--header-bg: #fff;
+		--header-border: #000;
+		--header-title: #006600;
+		--header-tagline: #333;
+	}
+
+	@media (prefers-color-scheme: dark) {
+		:root {
+			--text: #fff;
+			--text-light: #ccc;
+			--link: #9cf;
+			--bg: #000;
+			--code-bg: #111;
+			--border: #fff;
+			--accent: #0f0;
+			--header-bg: #000;
+			--header-border: #fff;
+			--header-title: #0f0;
+			--header-tagline: #ccc;
+		}
+	}
+}
+
+/* Print styles */
+@media print {
+	body {
+		background: #fff;
+		color: #000;
+	}
+
+	a {
+		color: #000;
+		text-decoration: underline;
+	}
+
+	a[href^="http"]::after {
+		content: " (" attr(href) ")";
+		font-size: 0.8em;
+	}
+
+	pre, code {
+		background: #f5f5f5;
+		border: 1px solid #ddd;
+	}
+
+	header, footer {
+		page-break-after: avoid;
 	}
 }
