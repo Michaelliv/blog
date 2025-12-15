@@ -6,7 +6,7 @@ pubDate: 2025-12-15
 
 Your tools aren't capabilities you give the model. They're waypoints that shape how it thinks.
 
-Most agent failures come from too much freedom. You dump context in, ask for output, and hope for the best. The model has to figure out what it needs, retrieve it mentally, reason through it, and produce an answer. All in one shot. That's a lot of cognitive load for a single completion.
+Most agent failures come from too much freedom. You dump context in, ask for output, and hope for the best. The model has to figure out what it needs, retrieve it mentally, reason through it, and produce an answer. All in one shot. That's a lot of [cognitive load](https://github.com/zakirullin/cognitive-load) for a single completion.
 
 The fix isn't just better prompts. It's designing the flow.
 
