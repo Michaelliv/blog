@@ -48,6 +48,8 @@ Each entry captures a preference discovered during editing.
 1. **2025-11-28**: Prefers Simon Willison-style third person for bio/about content - factual, project-focused, no fluff
 2. **2025-11-28**: "before and after" preferred over "along the way" when describing timeline spanning multiple periods
 3. **2025-11-28**: First post approved - short paragraphs, direct first person, meta/self-aware tone works well, "notes from the trenches" vibe
+4. **2025-12-15**: Concept pieces work at ~400 words. One concrete example sentence grounds abstract patterns. Mechanism explanations can be one sentence—don't over-explain.
+5. **2025-12-15**: Good structure for concept posts: hook → pattern → mechanism → example → deeper principle → caveats → punchline
 
 ---
 
@@ -57,3 +59,4 @@ Each entry captures a preference discovered during editing.
 2. **anatomy-of-agentic-systems.md** (2025-11-28) - Technical intro to agentic systems. Headers work for longer technical posts.
 3. **embedding-claude-code-sessions.mdx** (2025-11-28) - Meta post about building a ChatSession component. Uses the component it describes. MDX for component embedding.
 4. **sandboxed-execution-environment.md** (2025-11-28) - Technical deep-dive on building sandboxed execution. Narrative framing works well (strategic bet → exploration → implementation). Code blocks interspersed with explanation.
+5. **tool-design-is-all-about-the-flow.md** (2025-12-15) - Concept piece on agent tool design. Short (~400 words), one pattern (Search → View → Use), one example, punchy closer. Debate process helped tighten View/Use distinction.
