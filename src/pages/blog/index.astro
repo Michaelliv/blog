@@ -54,12 +54,12 @@ function getExcerpt(body: string, maxLength: number = 1200) {
 								)}
 							</header>
 							<h2><a href={`/blog/${post.id}/`}>{post.data.title}</a></h2>
-							<div class="excerpt">
-								<p>{excerpt.text}{excerpt.truncated && '...'}</p>
-								{excerpt.truncated && (
-									<p class="word-count">[... {excerpt.totalWords} words]</p>
-								)}
+							<div class={excerpt.truncated ? 'excerpt truncated' : 'excerpt'}>
+								<p>{excerpt.text}</p>
 							</div>
+							{excerpt.truncated && (
+								<p class="word-count"><a href={`/blog/${post.id}/`}>[... {excerpt.totalWords} words]</a></p>
+							)}
 						</article>
 					);
 				})}
@@ -125,10 +125,24 @@ function getExcerpt(body: string, maxLength: number = 1200) {
 	.excerpt p {
 		margin: 0;
 	}
+	.excerpt.truncated {
+		max-height: 12em;
+		overflow: hidden;
+		position: relative;
+	}
+	.excerpt.truncated::after {
+		content: '';
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		height: 2.5em;
+		background: linear-gradient(transparent, var(--bg));
+	}
 	.word-count {
 		color: var(--text-light);
 		font-size: 0.875rem;
-		margin-top: 0.5rem !important;
+		margin-top: 0.5rem;
 	}
 
 	@media (max-width: 480px) {
