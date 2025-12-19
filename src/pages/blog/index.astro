@@ -1,6 +1,6 @@
 ---
 import Analytics from '@vercel/analytics/astro';
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
@@ -11,22 +11,13 @@ const posts = (await getCollection('blog')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
 );
 
-function getExcerpt(body: string, maxLength: number = 1200) {
-	const stripped = body.replace(/^---[\s\S]*?---/, '').trim();
-	const totalWords = stripped.split(/\s+/).length;
-
-	if (stripped.length <= maxLength) {
-		return { text: stripped, truncated: false, totalWords };
-	}
-
-	const truncated = stripped.slice(0, maxLength);
-	const lastSpace = truncated.lastIndexOf(' ');
-	return {
-		text: truncated.slice(0, lastSpace),
-		truncated: true,
-		totalWords
-	};
-}
+const postsWithContent = await Promise.all(
+	posts.map(async (post) => {
+		const { Content } = await render(post);
+		const totalWords = (post.body || '').split(/\s+/).length;
+		return { post, Content, totalWords };
+	})
+);
 ---
 
 <!doctype html>
@@ -39,30 +30,29 @@ function getExcerpt(body: string, maxLength: number = 1200) {
 		<main>
 			<h1>Posts</h1>
 			<div class="post-list">
-				{posts.map((post) => {
-					const excerpt = getExcerpt(post.body || '');
-					return (
-						<article class="post-preview">
-							<header>
-								<span class="date"><FormattedDate date={post.data.pubDate} /></span>
-								{post.data.tags && (
-									<span class="tags">
-										{post.data.tags.map((tag) => (
-											<span class="tag">{tag}</span>
-										))}
-									</span>
-								)}
-							</header>
-							<h2><a href={`/blog/${post.id}/`}>{post.data.title}</a></h2>
-							<div class={excerpt.truncated ? 'excerpt truncated' : 'excerpt'}>
-								<p>{excerpt.text}</p>
-							</div>
-							{excerpt.truncated && (
-								<p class="word-count"><a href={`/blog/${post.id}/`}>[... {excerpt.totalWords} words]</a></p>
+				{postsWithContent.map(({ post, Content, totalWords }) => (
+					<article class="post-preview">
+						<header>
+							<span class="date"><FormattedDate date={post.data.pubDate} /></span>
+							{post.data.tags && (
+								<span class="tags">
+									{post.data.tags.map((tag) => (
+										<span class="tag">{tag}</span>
+									))}
+								</span>
 							)}
-						</article>
-					);
-				})}
+						</header>
+						<h2><a href={`/blog/${post.id}/`}>{post.data.title}</a></h2>
+						<div class={totalWords > 200 ? 'excerpt truncated' : 'excerpt'}>
+							<Content />
+						</div>
+						{totalWords > 200 && (
+							<p class="word-count">
+								<a href={`/blog/${post.id}/`}>[... {totalWords} words]</a>
+							</p>
+						)}
+					</article>
+				))}
 			</div>
 		</main>
 		<Footer />
@@ -120,13 +110,11 @@ function getExcerpt(body: string, maxLength: number = 1200) {
 		content: '#';
 	}
 	.excerpt {
-		line-height: 1.6;
-	}
-	.excerpt p {
-		margin: 0;
+		line-height: 1.5;
+		font-size: 0.9rem;
 	}
 	.excerpt.truncated {
-		max-height: 12em;
+		max-height: 18em;
 		overflow: hidden;
 		position: relative;
 	}
@@ -138,6 +126,27 @@ function getExcerpt(body: string, maxLength: number = 1200) {
 		right: 0;
 		height: 2.5em;
 		background: linear-gradient(transparent, var(--bg));
+	}
+	.excerpt :global(p) {
+		margin: 0 0 0.5em 0;
+	}
+	.excerpt :global(h1),
+	.excerpt :global(h2),
+	.excerpt :global(h3),
+	.excerpt :global(h4),
+	.excerpt :global(h5),
+	.excerpt :global(h6) {
+		font-size: 0.9rem !important;
+		font-weight: 600;
+		margin: 0.5em 0 0.15em 0;
+	}
+	.excerpt :global(ul),
+	.excerpt :global(ol) {
+		margin: 0.2em 0;
+		padding-left: 1.1rem;
+	}
+	.excerpt :global(li) {
+		margin-bottom: 0;
 	}
 	.word-count {
 		color: var(--text-light);
@@ -160,8 +169,10 @@ function getExcerpt(body: string, maxLength: number = 1200) {
 			font-size: 0.8rem;
 		}
 		.excerpt {
-			font-size: 0.9rem;
-			line-height: 1.5;
+			font-size: 0.875rem;
+		}
+		.excerpt.truncated {
+			max-height: 14em;
 		}
 	}
 </style>
