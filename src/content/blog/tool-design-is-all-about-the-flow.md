@@ -2,6 +2,7 @@
 title: "Tool Design is All About the Flow"
 description: "The insight that finally made my agents reliable: tools aren't utilities, they're waypoints."
 pubDate: 2025-12-15
+tags: ['agents', 'tool-design', 'llms']
 ---
 
 Your tools aren't capabilities you give the model. They're waypoints that shape how it thinks.

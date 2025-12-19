@@ -2,6 +2,7 @@
 title: "Context Engineering Has No Engine"
 description: "A specification for what context engineering actually means - and a call to build it"
 pubDate: 2025-12-19
+tags: ['agents', 'context-engineering', 'infrastructure', 'open-source']
 ---
 
 "Context engineering" is having a moment. Everyone's talking about what context to feed their agents. Almost no one is talking about the *engineering* part.
