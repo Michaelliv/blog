@@ -6,6 +6,8 @@ pubDate: 2025-12-22
 
 I have a confession.
 
+I keep pasting API keys into Claude Code. Or just letting it `cat .env`. Every time I tell myself I'll fix it later. I never do.
+
 ```bash
 # "Just this once..."
 curl -H "Authorization: Bearer sk-live-YOLO420..." https://api.stripe.com
