@@ -9,14 +9,14 @@ I have a confession.
 I keep pasting API keys into Claude Code. Or just letting it `cat .env`. Every time I tell myself I'll fix it later. I never do.
 
 ```bash
-# "Just this once..."
-curl -H "Authorization: Bearer sk-live-YOLO420..." https://api.stripe.com
+# "just read the .env"
+cat .env
 
-# "The agent needs it..."
-OPENAI_API_KEY=sk-... claude "please help me debug"
+# "here, use this key"
+sk-live-4wB7xK9mN2pL8qR3...
 
 # "I'll delete it from the chat after..."
-Hey Claude, my database password is hunter2, can you...
+my database password is hunter2, can you check why queries are slow?
 ```
 
 We've all done it. The secret is now in the model's context, in our terminal history, possibly in logs, maybe in training data. We tell ourselves it's fine. It's not fine.
