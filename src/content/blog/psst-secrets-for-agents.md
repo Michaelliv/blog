@@ -2,6 +2,7 @@
 title: "psst 🤫 Because Your Agent Doesn't Need to Know Your Secrets"
 description: "I built a secrets manager where agents use secrets without seeing them."
 pubDate: 2025-12-22
+tags: ['agents', 'security', 'cli', 'open-source']
 ---
 
 I have a confession.

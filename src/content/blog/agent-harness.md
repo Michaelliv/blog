@@ -2,6 +2,7 @@
 title: "The Agent Harness"
 description: "Defining the behaviors that LLM frameworks leave undefined"
 pubDate: 2025-12-20
+tags: ['agents', 'infrastructure', 'llms', 'open-source']
 ---
 
 Yesterday I wrote about [context engineering needing an engine](/blog/context-engineering-open-call). The feedback was clear: the framing didn't land. "Context engineering" is too abstract. People nodded politely and moved on.
