@@ -27,3 +27,22 @@ When co-authoring blog posts with Michael:
 ## Deployment
 
 Push to `main` → auto-deploys to Vercel
+
+## Promotion
+
+Relevant subreddits for AI/agents content:
+- r/AI_Agents
+- r/OpenAI
+- r/LangChain
+- r/LocalLLaMA
+- r/ollama
+- r/LLMDevs
+- r/Anthropic
+- r/programming
+- r/ClaudeAI
+- r/ChatGPT
+- r/MachineLearning
+- r/PromptEngineering
+- r/crewai
+- r/cursor
+- r/singularity
