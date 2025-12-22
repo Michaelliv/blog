@@ -1,5 +1,18 @@
 ---
+import { getCollection } from 'astro:content';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+
+const posts = await getCollection('blog');
+const tagCounts = new Map<string, number>();
+posts.forEach((post) => {
+	post.data.tags?.forEach((tag) => {
+		tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+	});
+});
+const topTags = [...tagCounts.entries()]
+	.sort((a, b) => b[1] - a[1])
+	.slice(0, 5)
+	.map(([tag]) => tag);
 ---
 
 <header>
@@ -13,6 +26,12 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 			<a href="/rss.xml">RSS</a>
 		</div>
 	</nav>
+	<div class="topics">
+		<span class="topics-label">Read more about:</span>
+		{topTags.map((tag) => (
+			<a href={`/tags/${tag}/`} class="topic">#{tag}</a>
+		))}
+	</div>
 </header>
 
 <style>
@@ -47,6 +66,27 @@ import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 	}
 	.nav-links a {
 		margin-left: 1.5rem;
+		font-size: 0.85rem;
+	}
+	.topics {
+		max-width: 650px;
+		margin: 0 auto;
+		padding: 0 1rem 1rem;
+		font-size: 0.8rem;
+		display: flex;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+		align-items: center;
+	}
+	.topics-label {
+		color: var(--text-light);
+	}
+	.topic {
+		color: var(--link);
+		text-decoration: none;
+	}
+	.topic:hover {
+		text-decoration: underline;
 	}
 
 	@media (max-width: 480px) {

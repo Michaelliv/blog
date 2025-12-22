@@ -37,7 +37,7 @@ const postsWithContent = await Promise.all(
 							{post.data.tags && (
 								<span class="tags">
 									{post.data.tags.map((tag) => (
-										<span class="tag">{tag}</span>
+										<a href={`/tags/${tag}/`} class="tag">{tag}</a>
 									))}
 								</span>
 							)}
@@ -104,7 +104,11 @@ const postsWithContent = await Promise.all(
 	}
 	.tag {
 		font-size: 0.75rem;
-		color: var(--text-light);
+		color: var(--link);
+		text-decoration: none;
+	}
+	.tag:hover {
+		text-decoration: underline;
 	}
 	.tag::before {
 		content: '#';

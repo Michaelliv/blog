@@ -1,0 +1,44 @@
+---
+title: "Split Personality Claude"
+description: "Using Claude to argue with itself. A surprisingly useful pattern for decisions."
+pubDate: 2025-12-22
+tags: ['llms', 'claude-code', 'meta']
+---
+import ChatSession from '../../components/ChatSession.astro';
+
+I built a skill that makes Claude debate itself.
+
+You give it a topic. It suggests three expert personas - chosen to disagree. A practitioner, a skeptic, a strategist. Whatever fits. Then it simulates a meeting where they argue.
+
+<ChatSession session={[
+  { role: "user", content: "/debate What should be the next subject of a post?" },
+  { role: "assistant", content: "Based on your existing posts, I suggest these experts:\n\n1. **The Practitioner** - A developer who builds with AI tools daily and cares about what actually works in production, not theory\n2. **The Skeptic** - A senior engineer who's seen hype cycles before and questions whether any of this agent stuff is real\n3. **The Strategist** - A tech blogger/content creator who thinks about audience, timing, and what ideas will resonate\n\nWant me to proceed with these, or would you like to adjust?" },
+  { role: "user", content: "proceed" },
+  { role: "assistant", content: "## The Editorial Meeting\n\n**Setting:** A virtual call. Three people discussing what Michael should write next.\n\n---\n\n**Dev** *(Daily AI practitioner)*: I've read through the posts. There's a clear arc here - anatomy of agents, tool design, context engineering, the harness spec, then psst for secrets. You're building up to something. What's missing is the *evaluation* piece.\n\n**Sam** *(Senior engineer, skeptic)*: Hold on. Has anyone validated that readers care about this harness thing? Two posts on essentially the same topic, one admitting the first \"didn't land.\" Maybe the signal is that this is too inside-baseball.\n\n**Jordan** *(Content strategist)*: Sam has a point. But the evaluation angle is interesting. The posts that get shared aren't specs - they're \"I tried X and here's what happened\" stories.\n\n---\n\n**Dev**: So what if the next post is evaluation but *concrete*? Like, \"I ran 50 tasks through my agent and here's where it failed.\" Real data.\n\n**Sam**: Now that I'd read. But let me push back - every post is about agents. What about the human side? What have you learned about *collaborating* with AI?\n\n**Jordan**: There's definitely appetite for \"how I actually work with AI\" content. Not everyone is building agent frameworks.\n\n---\n\n*End of editorial meeting.*" }
+]} />
+
+Here's the thing: I know it's all Claude. One model generating three voices. But the output is genuinely useful.
+
+## Why does this work?
+
+Single-prompt Claude gives you one perspective. It synthesizes, balances, hedges. Useful, but flat. You get the median take.
+
+Split-personality Claude gives you the edges. The skeptic says what you're afraid to hear. The practitioner asks "but does it actually work?" The strategist thinks about timing and audience. Each voice pulls toward a different priority.
+
+The mechanism is simple: personas constrain the response space. When Claude is "the skeptic," it's not trying to be helpful and balanced. It's trying to find holes. That constraint produces sharper output than asking for "pros and cons."
+
+## Disagreement as a feature
+
+Most AI workflows optimize for consensus. Give me the answer. Debate does the opposite. It surfaces the tensions you'll have to resolve anyway.
+
+None of these insights are magic. I could have thought of them. But I didn't - not until I watched fake experts argue about it.
+
+Caveats: the personas are still Claude. They share blind spots. They won't have information Claude doesn't have. And sometimes they agree too quickly - you have to prompt them to actually fight.
+
+But for unsticking decisions? For stress-testing ideas before you commit? Surprisingly effective.
+
+Sometimes the best use of one AI is making it argue with itself.
+
+---
+
+The skill: [gist.github.com/Michaelliv/4afd9429cdabea17e86e4df4f07b0718](https://gist.github.com/Michaelliv/4afd9429cdabea17e86e4df4f07b0718)

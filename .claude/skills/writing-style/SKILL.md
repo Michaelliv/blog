@@ -60,3 +60,4 @@ Each entry captures a preference discovered during editing.
 3. **embedding-claude-code-sessions.mdx** (2025-11-28) - Meta post about building a ChatSession component. Uses the component it describes. MDX for component embedding.
 4. **sandboxed-execution-environment.md** (2025-11-28) - Technical deep-dive on building sandboxed execution. Narrative framing works well (strategic bet → exploration → implementation). Code blocks interspersed with explanation.
 5. **tool-design-is-all-about-the-flow.md** (2025-12-15) - Concept piece on agent tool design. Short (~400 words), one pattern (Search → View → Use), one example, punchy closer. Debate process helped tighten View/Use distinction.
+6. **split-personality-claude.mdx** (2025-12-22) - Meta post about using Claude to debate itself. Embedded ChatSession showing actual /debate usage. ~350 words, punchy closer.

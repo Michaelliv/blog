@@ -1,5 +1,6 @@
 ---
 import Terminal from './Terminal.astro';
+import { marked } from 'marked';
 import { normalizeSession, extractRange, type ChatMessage, type ContentBlock, type ToolUseBlock, type SimpleMessage } from '../utils/parseSession';
 
 interface Props {
@@ -58,6 +59,11 @@ function getThinkingContent(content: ContentBlock[] | string): string | null {
 function textToLines(text: string): string[] {
   return text.split('\n');
 }
+
+// Render markdown to HTML
+function renderMarkdown(text: string): string {
+  return marked.parse(text, { async: false }) as string;
+}
 ---
 
 <Terminal title="claude">
@@ -104,11 +110,7 @@ function textToLines(text: string): string[] {
             {getTextContent(msg.content) && (
               <div class="assistant-text">
                 <span class="bullet">⏺</span>
-                <div class="text-content">
-                  {textToLines(getTextContent(msg.content)).map((line, i) => (
-                    <div class="text-line">{line || '\u00A0'}</div>
-                  ))}
-                </div>
+                <div class="text-content markdown-content" set:html={renderMarkdown(getTextContent(msg.content))} />
               </div>
             )}
           </div>
@@ -202,6 +204,53 @@ function textToLines(text: string): string[] {
 
   .text-line {
     min-height: 1.4em;
+  }
+
+  /* Markdown content styling */
+  .markdown-content :global(p) {
+    margin: 0 0 0.5em 0;
+  }
+  .markdown-content :global(p:last-child) {
+    margin-bottom: 0;
+  }
+  .markdown-content :global(h1),
+  .markdown-content :global(h2),
+  .markdown-content :global(h3) {
+    font-size: 1em;
+    font-weight: 600;
+    margin: 0.75em 0 0.25em 0;
+    color: #e0e0e0;
+  }
+  .markdown-content :global(h1:first-child),
+  .markdown-content :global(h2:first-child),
+  .markdown-content :global(h3:first-child) {
+    margin-top: 0;
+  }
+  .markdown-content :global(strong) {
+    color: #e0e0e0;
+    font-weight: 600;
+  }
+  .markdown-content :global(em) {
+    font-style: italic;
+  }
+  .markdown-content :global(code) {
+    background: #333;
+    padding: 0.1em 0.3em;
+    border-radius: 3px;
+    font-size: 0.95em;
+  }
+  .markdown-content :global(ul),
+  .markdown-content :global(ol) {
+    margin: 0.25em 0;
+    padding-left: 1.2em;
+  }
+  .markdown-content :global(li) {
+    margin-bottom: 0.15em;
+  }
+  .markdown-content :global(hr) {
+    border: none;
+    border-top: 1px solid #444;
+    margin: 0.75em 0;
   }
 
   /* Thinking blocks */
