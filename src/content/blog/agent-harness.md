@@ -1,6 +1,6 @@
 ---
 title: "The Agent Harness"
-description: "Defining the behaviors that LLM frameworks leave undefined"
+description: "A specification for agent behavior that LLM frameworks leave undefined: error handling, context management, tool execution, and state transitions."
 pubDate: 2025-12-20
 tags: ['agents', 'infrastructure', 'llms', 'open-source']
 ---

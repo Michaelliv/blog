@@ -7,16 +7,19 @@ import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
 
 type Props = CollectionEntry<'blog'>['data'] & {
+	slug: string;
 	prevPost?: CollectionEntry<'blog'> | null;
 	nextPost?: CollectionEntry<'blog'> | null;
+	relatedPosts?: CollectionEntry<'blog'>[];
 };
 
-const { title, description, pubDate, updatedDate, prevPost, nextPost } = Astro.props;
+const { title, description, pubDate, updatedDate, slug, prevPost, nextPost, relatedPosts = [] } = Astro.props;
+const ogImage = `/og/${slug}.png`;
 ---
 
 <html lang="en">
 	<head>
-		<BaseHead title={title} description={description} />
+		<BaseHead title={title} description={description} pubDate={pubDate} updatedDate={updatedDate} image={ogImage} />
 	</head>
 	<body>
 		<Header />
@@ -36,20 +39,47 @@ const { title, description, pubDate, updatedDate, prevPost, nextPost } = Astro.p
 						<slot />
 					</div>
 				</article>
-			</main>
-			<aside>
-				{nextPost && (
-					<div class="nav-item">
-						<span class="nav-label">Next</span>
-						<a href={`/blog/${nextPost.id}/`}>{nextPost.data.title}</a>
-						<p class="nav-desc">{nextPost.data.description}</p>
+				{relatedPosts.length > 0 && (
+					<div class="related mobile-only">
+						<span class="related-label">Related</span>
+						{relatedPosts.map((post) => (
+							<a href={`/blog/${post.id}/`} class="related-item">
+								<span class="related-title">{post.data.title}</span>
+							</a>
+						))}
 					</div>
 				)}
-				{prevPost && (
-					<div class="nav-item">
-						<span class="nav-label">Prev</span>
-						<a href={`/blog/${prevPost.id}/`}>{prevPost.data.title}</a>
-						<p class="nav-desc">{prevPost.data.description}</p>
+				{(prevPost || nextPost) && (
+					<nav class="post-nav">
+						{prevPost && (
+							<a href={`/blog/${prevPost.id}/`} class="post-nav-link prev">
+								<span class="post-nav-label">Previous</span>
+								<span class="post-nav-title">{prevPost.data.title}</span>
+							</a>
+						)}
+						{nextPost && (
+							<a href={`/blog/${nextPost.id}/`} class="post-nav-link next">
+								<span class="post-nav-label">Next</span>
+								<span class="post-nav-title">{nextPost.data.title}</span>
+							</a>
+						)}
+					</nav>
+				)}
+			</main>
+			<aside>
+				{relatedPosts.length > 0 && (
+					<div class="related desktop-only">
+						<span class="related-label">Related</span>
+						{relatedPosts.map((post) => (
+							<a href={`/blog/${post.id}/`} class="related-item">
+								<span class="related-title">{post.data.title}</span>
+								{post.data.tags && (
+									<span class="related-tags">
+										{post.data.tags.slice(0, 2).join(' · ')}
+									</span>
+								)}
+							</a>
+						))}
 					</div>
 				)}
 			</aside>
@@ -79,27 +109,69 @@ const { title, description, pubDate, updatedDate, prevPost, nextPost } = Astro.p
 		font-size: 0.85rem;
 		padding-top: 3rem;
 	}
-	.nav-item {
-		margin-bottom: 1.5rem;
+	.related {
+		margin-top: 0;
 	}
-	.nav-label {
+	.related-label {
 		display: block;
+		font-size: 0.7rem;
 		color: var(--text-light);
-		font-size: 0.75rem;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		margin-bottom: 0.75rem;
+	}
+	.related-item {
+		display: block;
+		padding: 0.5rem 0;
+		border-bottom: 1px solid var(--border);
+		text-decoration: none;
+	}
+	.related-item:first-of-type {
+		border-top: 1px solid var(--border);
+	}
+	.related-item:hover .related-title {
+		color: var(--link);
+	}
+	.related-title {
+		display: block;
+		color: var(--text);
+		line-height: 1.3;
+	}
+	.related-tags {
+		display: block;
+		font-size: 0.7rem;
+		color: var(--text-light);
+		margin-top: 0.2rem;
+	}
+	.post-nav {
+		display: flex;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-top: 3rem;
+		padding-top: 1.5rem;
+		border-top: 1px solid var(--border);
+		font-size: 0.85rem;
+	}
+	.post-nav-link {
+		text-decoration: none;
+	}
+	.post-nav-link:hover .post-nav-title {
+		text-decoration: underline;
+	}
+	.post-nav-link.prev {
+		text-align: left;
+	}
+	.post-nav-link.next {
+		text-align: right;
+	}
+	.post-nav-label {
+		font-size: 0.7rem;
+		color: var(--text-light);
 		text-transform: uppercase;
 		letter-spacing: 0.05em;
 	}
-	.nav-item a {
-		text-decoration: none;
-	}
-	.nav-item a:hover {
-		text-decoration: underline;
-	}
-	.nav-desc {
-		color: var(--text-light);
-		font-size: 0.75rem;
-		margin: 0.25rem 0 0 0;
-		line-height: 1.3;
+	.post-nav-title {
+		color: var(--link);
 	}
 	.post-header {
 		margin-bottom: 2rem;
@@ -127,14 +199,32 @@ const { title, description, pubDate, updatedDate, prevPost, nextPost } = Astro.p
 		max-width: 100%;
 	}
 
+	.mobile-only {
+		display: none;
+	}
+	.desktop-only {
+		display: block;
+	}
+
 	@media (max-width: 768px) {
 		.layout {
 			grid-template-columns: 1fr;
 			padding: 1.5rem 1rem;
 		}
 		aside {
-			padding-top: 1rem;
+			display: none;
+		}
+		.mobile-only {
+			display: block;
+			margin-top: 2rem;
+			padding-top: 1.5rem;
 			border-top: 1px solid var(--border);
+		}
+		.mobile-only .related-item:first-of-type {
+			border-top: none;
+		}
+		.post-nav {
+			margin-top: 1.5rem;
 		}
 	}
 
@@ -144,6 +234,22 @@ const { title, description, pubDate, updatedDate, prevPost, nextPost } = Astro.p
 		}
 		.post-header h1 {
 			font-size: 1.25rem;
+		}
+		.post-nav {
+			flex-direction: column;
+			gap: 0;
+		}
+		.post-nav-link {
+			display: block;
+			padding: 0.5rem 0;
+			border-bottom: 1px solid var(--border);
+		}
+		.post-nav-link:first-child {
+			border-top: 1px solid var(--border);
+		}
+		.post-nav-link.prev,
+		.post-nav-link.next {
+			text-align: left;
 		}
 	}
 </style>

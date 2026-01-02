@@ -1,6 +1,6 @@
 ---
 title: "psst 🤫 Because Your Agent Doesn't Need to Know Your Secrets"
-description: "I built a secrets manager where agents use secrets without seeing them."
+description: "I built a secrets manager where AI agents use secrets without seeing them. The secret never touches the context - it's injected at runtime."
 pubDate: 2025-12-22
 tags: ['agents', 'security', 'cli', 'open-source']
 ---

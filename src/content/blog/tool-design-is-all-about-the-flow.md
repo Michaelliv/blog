@@ -1,6 +1,6 @@
 ---
 title: "Tool Design is All About the Flow"
-description: "The insight that finally made my agents reliable: tools aren't utilities, they're waypoints."
+description: "The insight that finally made my agents reliable: tools aren't utilities, they're waypoints. Design for flow, not function."
 pubDate: 2025-12-15
 tags: ['agents', 'tool-design', 'llms']
 ---

@@ -1,13 +1,22 @@
 ---
-name: writing-style
-description: Michael's blog writing style preferences. Use when co-authoring posts for /dev/michael. This skill evolves as we write together.
+name: writing-guidelines
+description: Michael's blog writing guidelines. Use when co-authoring posts for /dev/michael. This skill evolves as we write together.
 ---
 
-# Michael's Writing Style
+# Writing Guidelines
 
-This skill guides co-authoring blog posts. It captures preferences learned through collaboration.
+Guidelines for co-authoring blog posts - style, structure, and SEO.
 
-**Status:** Skeleton - actively learning
+**Status:** Actively learning
+
+---
+
+## SEO
+
+- Description (120-160 chars): doubles as search snippet - make it compelling AND include key terms
+- First paragraph: should contain words someone would Google
+- Internal links: link to other posts naturally within content
+- Title: what would someone search to find this?
 
 ---
 

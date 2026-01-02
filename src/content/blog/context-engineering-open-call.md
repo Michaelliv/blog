@@ -1,6 +1,6 @@
 ---
 title: "Context Engineering Has No Engine"
-description: "A specification for what context engineering actually means - and a call to build it"
+description: "A specification for what context engineering actually means - and a call to build it. We have the term but not the tools."
 pubDate: 2025-12-19
 tags: ['agents', 'context-engineering', 'infrastructure', 'open-source']
 ---

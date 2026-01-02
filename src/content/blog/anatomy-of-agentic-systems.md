@@ -1,6 +1,6 @@
 ---
 title: 'Anatomy of agentic systems'
-description: 'The basic ingredients of an agentic system and the pulls and levers we have to control behavior.'
+description: "The basic ingredients of an agentic system: loops, tools, memory, and the levers we pull to control behavior without breaking autonomy."
 pubDate: 2025-11-28T14:00:00
 tags: ['llms', 'agents']
 ---

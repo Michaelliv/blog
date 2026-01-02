@@ -6,12 +6,33 @@ export async function getStaticPaths() {
 	const posts = (await getCollection('blog')).sort(
 		(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 	);
+
+	const getRelatedPosts = (
+		currentPost: CollectionEntry<'blog'>,
+		limit = 3
+	): CollectionEntry<'blog'>[] => {
+		const currentTags = currentPost.data.tags || [];
+		if (currentTags.length === 0) return [];
+
+		return posts
+			.filter((p) => p.id !== currentPost.id)
+			.map((p) => ({
+				post: p,
+				score: (p.data.tags || []).filter((tag: string) => currentTags.includes(tag)).length,
+			}))
+			.filter((p) => p.score > 0)
+			.sort((a, b) => b.score - a.score)
+			.slice(0, limit)
+			.map((p) => p.post);
+	};
+
 	return posts.map((post, index) => ({
 		params: { slug: post.id },
 		props: {
 			post,
 			prevPost: posts[index + 1] || null,
 			nextPost: posts[index - 1] || null,
+			relatedPosts: getRelatedPosts(post),
 		},
 	}));
 }
@@ -20,12 +41,13 @@ type Props = {
 	post: CollectionEntry<'blog'>;
 	prevPost: CollectionEntry<'blog'> | null;
 	nextPost: CollectionEntry<'blog'> | null;
+	relatedPosts: CollectionEntry<'blog'>[];
 };
 
-const { post, prevPost, nextPost } = Astro.props;
+const { post, prevPost, nextPost, relatedPosts } = Astro.props;
 const { Content } = await render(post);
 ---
 
-<BlogPost {...post.data} prevPost={prevPost} nextPost={nextPost}>
+<BlogPost {...post.data} slug={post.id} prevPost={prevPost} nextPost={nextPost} relatedPosts={relatedPosts}>
 	<Content />
 </BlogPost>
