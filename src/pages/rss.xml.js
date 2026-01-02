@@ -1,5 +1,6 @@
 import { getCollection } from 'astro:content';
 import rss from '@astrojs/rss';
+import { marked } from 'marked';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
 
 export async function GET(context) {
@@ -18,6 +19,7 @@ export async function GET(context) {
 			link: `/blog/${post.id}/`,
 			author: 'Michael Livshits',
 			categories: post.data.tags || [],
+			content: marked.parse(post.body || ''),
 		})),
 	});
 }
