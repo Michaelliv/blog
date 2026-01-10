@@ -1,7 +1,7 @@
 ---
 title: "Claude forgot. ran didn't."
 description: "Claude Code forgets your bash commands after context resets. ran indexes them across sessions so you can search what worked."
-pubDate: 2025-01-10
+pubDate: 2026-01-10
 tags: ["cli", "claude-code", "open-source", "context-engineering"]
 ---
 
@@ -15,7 +15,7 @@ Claude Code should have this too.
 
 When you're doing heavy development with Claude Code, context resets often. Every 45 minutes, maybe an hour. You hit the limit, context compacts, or you start a fresh session because things got messy.
 
-Now Claude is back to zero.
+Now Claude is back to zero (maybe not zero, but the commands it ran are almost always gone).
 
 It doesn't remember. It fumbles. Runs commands that already failed an hour ago. Burns tokens rediscovering what it already knew. You watch it fail three times before you interrupt and tell it what to do.
 
